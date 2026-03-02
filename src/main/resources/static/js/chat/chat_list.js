@@ -13,30 +13,58 @@ function enterRoom(roomId) {
 }
 
 // DOMContentLoaded 이벤트 (검색바 + 탭 메뉴)
+// DOMContentLoaded 이벤트 (검색바 + 탭 메뉴 + 진짜 이름 검색 로직)
 document.addEventListener("DOMContentLoaded", function () {
     const searchIcon = document.getElementById('searchIcon');
     const searchBar = document.getElementById('searchBar');
     const searchInput = document.getElementById('searchInput');
 
+    // 1. 돋보기 아이콘 클릭 시 검색창 열기/닫기
     if (searchIcon) {
         searchIcon.onclick = function () {
             searchBar.classList.toggle('active');
             if (searchBar.classList.contains('active')) {
                 setTimeout(() => searchInput.focus(), 200);
             } else {
+                // 검색창 닫을 때 검색어 지우고 '전체' 탭으로 초기화
                 searchInput.value = '';
-                // (참고: 검색창 닫을 때 탭 버튼 오류 방지를 위해 임시로 빈 값 처리)
-                if (document.querySelector('.tab-btn.active')) {
-                    filterRooms('all', document.querySelector('.tab-btn.active'));
-                }
+                const allTabBtn = document.querySelector('.tab-btn');
+                if (allTabBtn) filterRooms('all', allTabBtn);
             }
         };
     }
 
-    // 탭 메뉴 토글 로직
+    // ★★★ 날아갔던 진짜 '이름 검색' 로직 복구 ★★★
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            const keyword = this.value.trim().toLowerCase();
+            const rooms = document.querySelectorAll('.chat-item');
+
+            // 검색할 때는 '전체' 탭 기준으로 모든 방을 보여준 상태에서 필터링
+            document.querySelectorAll('.tab-btn').forEach(tab => tab.classList.remove('active'));
+            const allTabBtn = document.querySelector('.tab-btn');
+            if (allTabBtn) allTabBtn.classList.add('active');
+
+            rooms.forEach(room => {
+                const nameElement = room.querySelector('.chat-name');
+                if (nameElement) {
+                    const name = nameElement.innerText.toLowerCase();
+                    // 이름에 검색어가 포함되어 있으면 보여주고, 없으면 숨김
+                    if (name.startsWith(keyword)) {
+                        room.style.display = '';
+                    } else {
+                        room.style.display = 'none';
+                    }
+                }
+            });
+        });
+    }
+
+    // 3. 탭 메뉴 토글 로직
     const tabBtns = document.querySelectorAll('.tab-btn');
     tabBtns.forEach(btn => {
         btn.addEventListener('click', function () {
+            if (searchInput) searchInput.value = ''; // 탭 누르면 검색어 지우기
             tabBtns.forEach(b => b.classList.remove('active'));
             this.classList.add('active');
         });
