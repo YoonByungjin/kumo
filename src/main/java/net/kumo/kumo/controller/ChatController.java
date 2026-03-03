@@ -208,4 +208,16 @@ public class ChatController {
         // 2. 생성된(혹은 찾은) 방으로 즉시 이동
         return "redirect:/chat/room/" + room.getId() + "?userId=" + seekerId;
     }
+
+    // ======================================================================
+    // ★ [LIVE] 상대방이 방에 들어오거나 메시지를 읽었을 때 '1' 지우기 ★
+    // ======================================================================
+    @MessageMapping("/chat/read")
+    public void processRead(ChatMessageDTO readSignal) {
+        // 1. DB 업데이트: 읽음 신호를 보낸 사람이 밀린 메시지를 다 읽었다고 DB에 반영
+        chatService.processLiveReadSignal(readSignal.getRoomId(), readSignal.getSenderId());
+
+        // 2. 채팅방 안에 있는 두 사람에게 "방금 다 읽었대! 1 지워!" 하고 브로드캐스팅
+        messagingTemplate.convertAndSend("/sub/chat/room/" + readSignal.getRoomId(), readSignal);
+    }
 }

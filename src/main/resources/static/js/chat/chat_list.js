@@ -271,3 +271,84 @@ function updateChatListUI(newMsg) {
         console.log("목록에 없는 완전히 새로운 방입니다! (페이지 새로고침 필요)");
     }
 }
+
+// ==========================================================
+// ★ [LIVE] 완벽 조준 완료된 실시간 목록 갱신 (탭 동기화 포함) ★
+// ==========================================
+function updateChatListUI(newMsg) {
+    const chatItems = document.querySelectorAll('.chat-item');
+    let targetRoom = null;
+
+    chatItems.forEach(item => {
+        const onclickAttr = item.getAttribute('onclick');
+        if (onclickAttr && onclickAttr.includes(`enterRoom(${newMsg.roomId})`)) {
+            targetRoom = item;
+        }
+    });
+
+    if (targetRoom) {
+        const recentMsgSpan = targetRoom.querySelector('.chat-preview');
+        const timeSpan = targetRoom.querySelector('.chat-time');
+
+        // 1. 메시지 내용 찰칵! 덮어쓰기
+        if (recentMsgSpan) {
+            if (newMsg.messageType === 'IMAGE') recentMsgSpan.innerText = '(사진)';
+            else if (newMsg.messageType === 'FILE') recentMsgSpan.innerText = '(파일)';
+            else recentMsgSpan.innerText = newMsg.content;
+        }
+
+        // 2. 시간 찰칵! 덮어쓰기 (HH:mm 형태로 잘라서 예쁘게 넣기)
+        if (timeSpan && newMsg.createdAt) {
+            let timeStr = newMsg.createdAt;
+            if (timeStr.includes(' ')) timeStr = timeStr.split(' ')[1].substring(0, 5);
+            else if (timeStr.includes('T')) timeStr = timeStr.split('T')[1].substring(0, 5);
+            timeSpan.innerText = timeStr;
+        }
+
+        // 3. 방을 맨 위로 훅! 끌어올리기 (고정핀 방이 아닐 때만)
+        if (!targetRoom.classList.contains('is-pinned')) {
+            const chatListContainer = document.querySelector('.chat-list');
+            const firstUnpinned = chatListContainer.querySelector('.chat-item:not(.is-pinned)');
+
+            targetRoom.style.transition = 'background-color 0.4s ease';
+            targetRoom.style.backgroundColor = 'rgba(255, 184, 0, 0.15)';
+            setTimeout(() => targetRoom.style.backgroundColor = '', 1000);
+
+            if (firstUnpinned) {
+                chatListContainer.insertBefore(targetRoom, firstUnpinned);
+            } else {
+                chatListContainer.appendChild(targetRoom);
+            }
+        }
+
+        // ==========================================================
+        // ★ [추가] 4. 안읽음/읽음 데이터 실시간 업데이트 및 탭 즉시 갱신 ★
+        // ==========================================================
+        const urlParams = new URLSearchParams(window.location.search);
+        const myUserId = urlParams.get('userId');
+
+        // 메시지 발신자가 '나'인지 '상대방'인지 판별해서 데이터 속성 갱신
+        if (String(newMsg.senderId) !== String(myUserId)) {
+            targetRoom.setAttribute('data-unread', 'true'); // 상대방이 보냄 -> 안읽음
+        } else {
+            targetRoom.setAttribute('data-unread', 'false'); // 내가 보냄 -> 읽음
+        }
+
+        // 현재 켜져 있는 탭(전체/읽지않음/읽음)에 맞게 방을 즉시 보여주거나 숨기기
+        const activeTab = document.querySelector('.tab-btn.active');
+        if (activeTab) {
+            const filterText = activeTab.innerText.trim();
+            const isUnread = targetRoom.getAttribute('data-unread') === 'true';
+
+            if (filterText === '읽지않음' && !isUnread) {
+                targetRoom.style.display = 'none'; // '읽지않음' 탭인데 읽은 상태면 숨김
+            } else if (filterText === '읽음' && isUnread) {
+                targetRoom.style.display = 'none'; // '읽음' 탭인데 안 읽은 새 메시지가 오면 숨김
+            } else {
+                targetRoom.style.display = ''; // 조건에 맞으면 바로 보여줌
+            }
+        }
+    } else {
+        console.log("목록에 없는 완전히 새로운 방입니다! (페이지 새로고침 필요)");
+    }
+}
