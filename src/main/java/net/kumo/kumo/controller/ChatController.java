@@ -14,6 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import net.kumo.kumo.repository.UserRepository;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +29,9 @@ public class ChatController {
 
     private final ChatService chatService;
     private final SimpMessagingTemplate messagingTemplate;
+
+    // ★ 1. DB에서 진짜 내 정보를 찾아올 무기 장착 완료!
+    private final UserRepository userRepository;
 
     // [이식 포인트] application.properties의 file.upload.chat 값을 가져옵니다.
     @Value("${file.upload.chat}")
@@ -70,26 +74,27 @@ public class ChatController {
         return "chat/chat_room";
     }
 
-    // ChatController.java
-
+    // ★★★ 여기가 도플갱어 퇴마 수술 포인트입니다! ★★★
     @GetMapping("/chat/list")
-    public String chatList(Principal principal, Model model) { // ★ Principal 추가
+    public String chatList(Principal principal, Model model) {
 
-        // 1. 로그인한 유저의 이메일(혹은 ID) 가져오기
+        // 1. 로그인 안 했으면 로그인 창으로 쫓아냅니다.
         if (principal == null) {
             return "redirect:/login";
         }
 
-        // 현우님의 User 서비스에서 이메일로 실제 PK(Long)를 찾아오는 과정이 필요할 수 있습니다.
-        // 만약 현재 세션에서 바로 Long ID를 가져올 수 없다면, 우선 테스트를 위해 '임시 ID'를 넣어보세요.
-        // Long myId = userService.findByEmail(principal.getName()).getUserId();
+        // 🌟 2. 순리대로 갑니다. 시큐리티에서 '진짜 현재 접속한 사람의 이메일'을 뽑아옵니다.
+        String loginEmail = principal.getName();
 
-        Long myId = 6L; // ★ 우선 하드코딩으로 6을 넣어서 페이지가 뜨는지 확인해봅시다!
+        // 🌟 3. 뽑아온 이메일로 DB를 뒤져서 진짜 내 정보를 가져오고, 내 고유 번호(Long)를 꺼냅니다!
+        UserEntity user = userRepository.findByEmail(loginEmail)
+                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
 
-        // 2. 서비스 호출 (myId 사용)
+        // ★ 가짜 6번 박살! 이제 무조건 진짜 내 ID가 들어갑니다!
+        Long myId = user.getUserId();
+
+        // 4. 진짜 내 ID로 방 목록 가져오기
         List<ChatRoomListDTO> chatRooms = chatService.getChatRoomsForUser(myId);
-
-        // ... 가라 데이터 추가 로직 그대로 유지 ...
 
         model.addAttribute("chatRooms", chatRooms);
         model.addAttribute("userId", myId);
@@ -148,10 +153,6 @@ public class ChatController {
             return ResponseEntity.internalServerError().body("업로드 실패");
         }
     }
-
-    // ======================================================================
-    // 3. [실시간 통신] 메시지 주고 받기 (WebSocket)
-    // ======================================================================
 
     // ======================================================================
     // 3. [실시간 통신] 메시지 주고 받기 (WebSocket)
