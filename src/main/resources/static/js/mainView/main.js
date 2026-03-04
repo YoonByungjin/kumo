@@ -28,6 +28,10 @@ $(document).ready(function() {
     // 바텀 시트 핸들 클릭 이벤트
     $('.sheet-handle').on('click', function() {
         const $sheet = $('#bottomSheet');
+        const $sheetTitle = $('#sheetTitle');
+
+        $sheetTitle.text(MapMessages.titleExplore);
+
         $sheet.toggleClass('active');
 
         if ($sheet.hasClass('active')) {
@@ -674,7 +678,7 @@ const UIManager = {
         const currentLang = new URLSearchParams(window.location.search).get('lang') === 'ja' ? 'ja' : 'kr';
 
         if (tabName === 'nearby') {
-            $sheetTitle.text(currentLang === 'ja' ? '周辺の求人情報 📍' : '내 주변 구직 정보 📍');
+            $sheetTitle.text(MapMessages.titleNearby);
 
             // 🌟 1. '내 주변'도 필터이므로 지도 이동 갱신을 멈춥니다(Lock)!
             AppState.isFilterMode = true;
@@ -684,20 +688,20 @@ const UIManager = {
             MapManager.moveToCurrentLocation();
         }
         else if (tabName === 'saved') {
-            $sheetTitle.text(currentLang === 'ja' ? 'お気に入りの求人 ⭐' : '즐겨찾기한 구직 정보 ⭐');
+            $sheetTitle.text(MapMessages.titleSaved);
             AppState.isFilterMode = true;
             AppState.isLocationMode = false;
             JobService.loadSavedJobs();
         }
         else if (tabName === 'recent') {
-            $sheetTitle.text(currentLang === 'ja' ? '最近見た求人 🕒' : '최근 본 구직 정보 🕒');
+            $sheetTitle.text(MapMessages.titleRecent);
             AppState.isFilterMode = true;
             AppState.isLocationMode = false;
             JobService.loadRecentJobs();
         }
         else if (tabName === 'explore') {
             // 🌟 4. [NEW] 토글이 풀린 자유 탐색 모드!
-            $sheetTitle.text(currentLang === 'ja' ? '求人情報リスト 📋' : '구직 정보 리스트 📋');
+            $sheetTitle.text(MapMessages.titleExplore);
 
             AppState.isFilterMode = false; // 지도 이동 갱신(idle) 다시 켜기!
             AppState.isLocationMode = false; // 반경 3km 필터 끄기!
