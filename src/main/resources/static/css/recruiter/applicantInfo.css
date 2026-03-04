@@ -502,3 +502,119 @@ body.dark-mode .badge.bg-secondary {
   font-weight: 700;
   padding: 5px 10px;
 }
+
+/* ============================
+   모달 다크모드 완전 개선
+   ============================ */
+
+/* 모달 전체 배경 */
+body.dark-mode .modal-content {
+  background-color: #2a2b2e !important;
+  border: 1px solid #37393d !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* 모달 헤더 */
+body.dark-mode .modal-header {
+  background-color: #232428 !important;
+  border-bottom: 1px solid #37393d !important;
+}
+
+body.dark-mode .modal-title,
+body.dark-mode #resumeModalLabel {
+  color: #e3e5e8 !important;
+}
+
+body.dark-mode .modal-header .text-muted {
+  color: #91959b !important;
+}
+
+body.dark-mode .modal-header .text-dark,
+body.dark-mode #modalJob {
+  color: #c8cdd4 !important;
+}
+
+/* 닫기 버튼 */
+body.dark-mode .modal-header .btn-close {
+  filter: invert(1) brightness(0.7);
+}
+
+/* 모달 바디 */
+body.dark-mode .resume-modal-body {
+  background-color: #1e1f21 !important;
+}
+
+/* 이력서 섹션 카드 */
+body.dark-mode .resume-section {
+  background-color: #2a2b2e !important;
+  border: 1px solid #37393d !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+body.dark-mode .resume-section h5 {
+  color: #e3e5e8 !important;
+  border-bottom-color: #37393d !important;
+}
+
+body.dark-mode .resume-section h5 i {
+  color: #7db4e6 !important;
+}
+
+body.dark-mode .resume-section p,
+body.dark-mode .resume-section div {
+  color: #b0b3b8 !important;
+}
+
+body.dark-mode .resume-section .fw-bold {
+  color: #e3e5e8 !important;
+}
+
+body.dark-mode .spec-item .label {
+  color: #91959b !important;
+}
+
+/* 모달 푸터 */
+body.dark-mode .modal-footer {
+  background-color: #232428 !important;
+  border-top: 1px solid #37393d !important;
+}
+
+body.dark-mode .modal-footer .btn-outline-secondary {
+  border-color: #37393d !important;
+  color: #91959b !important;
+  background-color: #2a2b2e !important;
+}
+
+body.dark-mode .modal-footer .btn-outline-secondary:hover {
+  background-color: #37393d !important;
+  color: #e3e5e8 !important;
+}
+
+body.dark-mode .modal-footer .btn-primary {
+  background-color: #7db4e6 !important;
+  border-color: #7db4e6 !important;
+  color: #fff !important;
+}
+
+body.dark-mode .modal-footer .btn-success {
+  background-color: rgba(81, 207, 102, 0.2) !important;
+  border-color: rgba(81, 207, 102, 0.4) !important;
+  color: #51cf66 !important;
+}
+
+body.dark-mode .modal-footer .btn-success:hover {
+  background-color: rgba(81, 207, 102, 0.35) !important;
+}
+
+/* 첨부파일 버튼 */
+body.dark-mode .resume-section .btn-light {
+  background-color: #37393d !important;
+  border-color: #3e4044 !important;
+  color: #7db4e6 !important;
+}
+
+/* 스피너 */
+body.dark-mode .spinner-border {
+  color: #7db4e6 !important;
+}
+
