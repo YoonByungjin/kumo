@@ -105,17 +105,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // SNS 토글 알림 (기존 로직 유지)
     document.querySelectorAll('.sns-toggle').forEach(toggle => {
-        toggle.addEventListener('click', (e) => {
-            e.preventDefault();
-            const isDark = document.documentElement.classList.contains('dark-mode');
-            Swal.fire({
-                title: typeof settingsMsg !== 'undefined' ? settingsMsg.snsTitle : 'Service Notice',
-                text: typeof settingsMsg !== 'undefined' ? settingsMsg.snsText : '아직 서비스 준비 중입니다.',
-                icon: 'info',
-                confirmButtonColor: '#7db4e6',
-                background: isDark ? '#2b2b2b' : '#fff',
-                color: isDark ? '#fff' : '#333'
-            });
+    toggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        const isDark = document.documentElement.classList.contains('dark-mode');
+        Swal.fire({
+            title: msgSnsTitle,   // ← 변수로 교체
+            text: msgSnsText,     // ← 변수로 교체
+            icon: 'info',
+            confirmButtonColor: '#7db4e6',
+            background: isDark ? '#2a2b2e' : '#fff',
+            color: isDark ? '#e3e5e8' : '#333'
         });
     });
+});
 });

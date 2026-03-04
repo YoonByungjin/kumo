@@ -418,8 +418,12 @@ body.dark-mode .toggle-btn.active {
 
 body.dark-mode .btn-add-outline {
     background: transparent;
-    border-color: #7db4e6;
+    border-color: #ffffff;
     color: #7db4e6;
+}
+
+body.dark-mode .btn-add-outline:hover {
+    border-color: #7db4e6;
 }
 
 body.dark-mode .btn-upload-file {
@@ -471,4 +475,12 @@ input[type="number"]::-webkit-inner-spin-button {
 input[type="number"] {
     -moz-appearance: textfield;
     appearance: textfield;
+}
+
+body.dark-mode .btn-submit-resume {
+    background-color: #7db4e6 !important;
+}
+
+body.dark-mode .btn-submit-resume:hover {
+    background-color: #5986b0 !important;
 }

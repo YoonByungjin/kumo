@@ -98,10 +98,11 @@ body.dark-mode .scout-container {
 }
 
 /* Dark Mode */
+/* ✅ 수정 - 소프트 다크 팔레트 통일 */
 body.dark-mode .scout-card {
-    background-color: #1e1e1e;
-    border-color: #2d2d2d;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    background-color: #2a2b2e;
+    border-color: #37393d;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 body.dark-mode .biz-name {

@@ -261,7 +261,7 @@ footer {
   align-items: center;
   justify-content: space-between;
   padding: 15px 0;
-  border-bottom: 1px solid #f9fafb;
+  border-bottom: 1px solid #37393d;
   transition: background-color 0.2s;
 }
 
@@ -358,13 +358,62 @@ body.dark-mode .btn-scout-action {
   font-size: 0.9rem;
 }
 
+/* ============================================================
+   ☁️ KUMO 시그니처 .btn-detail (통합 리뉴얼)
+   ============================================================ */
+
+/* 1. 라이트 모드 (기본): 맑고 투명한 조약돌 느낌 */
 .btn-detail {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  background-color: rgba(125, 180, 230, 0.12);
+  /* 쿠모 하늘색 12% 투명도 */
   color: #7db4e6;
-  background: #e8f3ff;
-  padding: 5px 10px;
-  border-radius: 8px;
+  /* 쿠모 대표색 */
+  border: 1.5px solid rgba(125, 180, 230, 0.2);
+  border-radius: 10px;
   font-weight: 700;
+  font-size: 0.85rem;
   text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+/* 라이트 모드 호버: 색이 차오르며 살짝 뜸 */
+.btn-detail:hover {
+  background-color: #7db4e6;
+  color: #ffffff;
+  transform: translateY(-2.5px);
+  box-shadow: 0 5px 15px rgba(125, 180, 230, 0.35);
+}
+
+/* 2. 다크 모드 (Warm-Dark): 밤하늘의 네온 조명 느낌 */
+body.dark-mode .btn-detail {
+  background-color: rgba(125, 180, 230, 0.08) !important;
+  /* 더 은은한 투명도 */
+  color: #7db4e6 !important;
+  border: 1px solid rgba(125, 180, 230, 0.35) !important;
+  box-shadow: none;
+}
+
+/* 다크 모드 호버: 발광(Glow) 효과 극대화 */
+body.dark-mode .btn-detail:hover {
+  background-color: #7db4e6 !important;
+  color: #1e1f21 !important;
+  /* 글자색을 다크 배경색으로 바꿔서 대비감 UP! */
+  transform: translateY(-2.5px);
+  /* 🌟 쿠모만의 영롱한 광채 효과 */
+  box-shadow: 0 0 15px rgba(125, 180, 230, 0.5) !important;
+  border-color: #7db4e6 !important;
+}
+
+/* 3. 공통 클릭 반응 (쫀득한 손맛) */
+.btn-detail:active,
+body.dark-mode .btn-detail:active {
+  transform: translateY(0) scale(0.95) !important;
+  transition: all 0.1s !important;
 }
 
 /* 3. 내 공고 패널 */
@@ -479,24 +528,7 @@ body.dark-mode .myjobs-row:hover {
   cursor: pointer;
 }
 
-/* 2. 다크모드 전용: 고급스러운 호버 효과 */
-body.dark-mode .btn-detail:hover {
-  /* 🌟 색상은 사장님 포인트 컬러(7db4e6)를 조금 더 확실하게 사용 */
-  background-color: #7db4e6 !important;
-  color: #ffffff !important;
 
-  /* 🌟 고급짐의 핵심 1: 아주 살짝 위로 띄우기 (-2px) */
-  transform: translateY(-2px);
-
-  /* 🌟 고급짐의 핵심 2: 은은한 파란색 네온 광채 추가 */
-  box-shadow: 0 5px 15px rgba(122, 186, 255, 0.4) !important;
-}
-
-/* 3. 클릭 시 반응 (쫀득함의 완성) */
-body.dark-mode .btn-detail:active {
-  transform: translateY(0) scale(0.96);
-  /* 누를 때 살짝 들어가는 느낌 */
-}
 
 /* main.css에 추가 */
 .chart-placeholder {
