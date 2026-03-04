@@ -17,7 +17,8 @@ const AppState = {
     ignoreIdle: false, // 🌟 [NEW] 지도가 강제 이동 중일 때 자동 갱신을 막는 스위치
     isFilterMode: false, // 🌟 [NEW] 저장/최근 탭이 켜져 있을 때 갱신을 '영구적'으로 막는 스위치
     userLocation: null,    // 🌟 [NEW] 내 GPS 위치 저장용
-    isLocationMode: false  // 🌟 [NEW] 내 주변 보기 모드 켜짐 여부
+    isLocationMode: false,  // 🌟 [NEW] 내 주변 보기 모드 켜짐 여부
+    scrapedJobIds: new Set() // 🌟 [추가] 내가 찜한 공고 ID들을 기억할 수첩! (Set을 쓰면 검색이 엄청 빠릅니다)
 };
 
 // ============================================================
@@ -67,6 +68,11 @@ $(document).ready(function() {
     if ($('#chatWidget')){
         ChatWidgetManager.initDraggable();
     }
+
+    // 🌟 [추가] 로그인한 상태라면, 페이지가 켜지자마자 찜 목록을 수첩에 적어둡니다.
+    if (typeof isUserLoggedIn !== 'undefined' && isUserLoggedIn) {
+        JobService.initSavedJobs();
+    }
 });
 
 // ============================================================
@@ -107,7 +113,7 @@ const MapManager = {
         // 🌟 [복구] 이 부분(이벤트 리스너)이 빠져 있었습니다!
         // 지도가 멈출 때(idle)마다 실행한다는 명령이 없어서 동작을 안 했던 겁니다.
         map.addListener("idle", () => {
-// 🌟 [핵심 변경] 강제 이동 중(ignoreIdle)이거나 필터 모드(isFilterMode)일 때는 갱신 정지!
+            // 🌟 [핵심 변경] 강제 이동 중(ignoreIdle)이거나 필터 모드(isFilterMode)일 때는 갱신 정지!
             if(AppState.ignoreIdle || AppState.isFilterMode){
                 return;
             }
@@ -430,6 +436,12 @@ const JobService = {
             method: 'GET',
             dataType: 'json',
             success: function(data) {
+                // 수첩 최신화
+                AppState.scrapedJobIds.clear();
+                if(data && data.length > 0) {
+                    data.forEach(job => AppState.scrapedJobIds.add(job.id + '_' + job.source));
+                }
+
                 UIManager.renderList(data, true);
                 MarkerManager.renderMarkers(data);
 
@@ -449,7 +461,7 @@ const JobService = {
 
     // 🌟 [최근 본 공고] 브라우저 로컬 스토리지에서 가져오기
     loadRecentJobs: function() {
-        const recentJobsJson = localStorage.getItem('kumo_recent_jobs');
+        const recentJobsJson = sessionStorage.getItem('kumo_recent_jobs');
         let recentJobs = [];
 
         if (recentJobsJson) {
@@ -477,7 +489,7 @@ const JobService = {
         if (!jobData || !jobData.id) return;
 
         // 1. 기존 데이터 꺼내오기 (없으면 빈 배열)
-        const recentStr = localStorage.getItem('kumo_recent_jobs');
+        const recentStr = sessionStorage.getItem('kumo_recent_jobs');
         let recentJobs = recentStr ? JSON.parse(recentStr) : [];
 
         // 2. 중복 제거 (이미 본 공고를 또 눌렀다면, 예전 기록을 지우고 최신으로 올리기 위해)
@@ -492,7 +504,7 @@ const JobService = {
         }
 
         // 5. 다시 문자열로 바꿔서 로컬스토리지에 저장
-        localStorage.setItem('kumo_recent_jobs', JSON.stringify(recentJobs));
+        sessionStorage.setItem('kumo_recent_jobs', JSON.stringify(recentJobs));
 
         console.log(`💾 최근 본 공고 저장됨 (총 ${recentJobs.length}개)`);
     },
@@ -509,7 +521,24 @@ const JobService = {
         }
 
         window.location.href = url;
-    }
+    },
+
+    // 🌟 [NEW] 서버에서 찜 목록을 가져와 수첩에만 몰래 적어두는 함수
+    initSavedJobs: function() {
+        const currentLang = new URLSearchParams(window.location.search).get('lang') === 'ja' ? 'ja' : 'kr';
+        $.ajax({
+            url: `/api/scraps?lang=${currentLang}`,
+            method: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                AppState.scrapedJobIds.clear(); // 수첩 초기화
+                if(data && data.length > 0) {
+                    // "11_TOKYO" 처럼 아이디와 지역을 합쳐서 수첩에 기록
+                    data.forEach(job => AppState.scrapedJobIds.add(job.id + '_' + job.source));
+                }
+            }
+        });
+    },
 };
 
 // ============================================================
@@ -633,6 +662,7 @@ const MarkerManager = {
 
 // ============================================================
 // [6] UI 관리자 (UI Manager - jQuery)
+// ============================================================
 const UIManager = {
     // 🔄 [NEW] 하단 탭 전환 함수
     // 🔄 [Refactored] 탭 기능 분기 처리
@@ -711,12 +741,16 @@ const UIManager = {
                 ? `onclick="MapManager.moveToJobLocation(${job.lat}, ${job.lng})"`
                 : `onclick="alert('지도 좌표 정보가 없습니다.')"`;
 
+            // 🌟 [핵심] 리스트를 그릴 때 수첩(AppState.scrapedJobIds) 검사!
+            const jobSignature = job.id + '_' + job.source;
+            const isSaved = AppState.scrapedJobIds.has(jobSignature);
+
             let btnClass = 'btn';
             let btnText = MapMessages.btnSave;
             let unsaveText = currentLang === 'ja' ? '保存解除' : '찜해제';
 
             // 🌟 1. 모드에 따라 버튼 디자인과 텍스트를 먼저 바꿉니다.
-            if (isSavedMode) {
+            if (isSavedMode || isSaved) {
                 btnClass = "btn btn-saved"; // 노란색 클래스 적용
                 btnText = unsaveText;
             }
@@ -734,7 +768,6 @@ const UIManager = {
                         ${title}
                     </span>
                     <span class="badge bg-blue">${MapMessages.badgeRecruit}</span>
-                    <span class="badge bg-yellow">${MapMessages.badgeUrgent}</span>
                 </td>
                 <td><a href="#" class="company-text">${company}</a></td>
                 <td><span class="addr-text">${address}</span></td>
@@ -777,7 +810,7 @@ const UIManager = {
         $('.job-address').html(`${MapMessages.labelAddress} <span id="card-address">${job.address || '-'}</span>`);
         $('#card-phone').text(job.contactPhone || '-');
 
-        $('#jobDetailCard .btn-outline').text(MapMessages.btnSaveCard);
+        $('#jobDetailCard .btn-scrap').text(MapMessages.btnSaveCard);
         $('#btn-detail').text(MapMessages.btnDetailCard);
 
         const $img = $('#card-img');
@@ -787,6 +820,31 @@ const UIManager = {
         $('#btn-detail').off('click').on('click', function() {
             window.location.href = detailUrl;
         });
+
+        const $scrapBtn = $('#jobDetailCard .btn-scrap');
+
+        if (isUserLoggedIn) {
+            $scrapBtn.show();
+
+            // 🌟 [핵심 로직] 이 공고가 내 수첩에 적혀있는지 검사합니다!
+            const jobSignature = job.id + '_' + job.source;
+            const isSaved = AppState.scrapedJobIds.has(jobSignature);
+
+            if (isSaved) {
+                // 수첩에 있으면 파란색으로 칠하기!
+                $scrapBtn.addClass('favorite').text(currentLang === 'ja' ? '保存解除' : '찜해제');
+            } else {
+                // 없으면 하얀색 기본 버튼으로 칠하기!
+                $scrapBtn.removeClass('favorite').text(MapMessages.btnSaveCard);
+            }
+
+            // 버튼 클릭 이벤트 걸기 (기존 이벤트 지우고 새로 걸기)
+            $scrapBtn.off('click').on('click', function() {
+                UIManager.toggleCardScrap(job.id, job.source);
+            });
+        } else {
+            $scrapBtn.hide(); // 비로그인 유저는 버튼 숨김 (또는 클릭 시 로그인 알림창 띄우기 가능)
+        }
 
         $card.show();
         $('#bottomSheet').removeClass('active');
@@ -813,6 +871,7 @@ const UIManager = {
         const jobId = $btn.data('id');
         const source = $btn.data('source');
         const currentLang = new URLSearchParams(window.location.search).get('lang') === 'ja' ? 'ja' : 'kr';
+        const jobSignature = jobId + '_' + source; // 수첩 기록용
 
         $.ajax({
             url: '/api/scraps',
@@ -820,23 +879,99 @@ const UIManager = {
             contentType: 'application/json',
             data: JSON.stringify({ targetPostId: jobId, targetSource: source }),
             success: function(response) {
-                if (response.isScraped) {
-                    // 찜 등록 시 노란색으로 변경
+                let isSaved = false;
+                if (typeof response === 'boolean') isSaved = response;
+                else if (response && response.isScraped !== undefined) isSaved = response.isScraped;
+                else if (response && response.scraped !== undefined) isSaved = response.scraped;
+                else if (response && response.result !== undefined) isSaved = response.result;
+
+                // (옵션) 혹시 카드가 열려있다면 카드 버튼 모양도 같이 바꿔줌
+                const $cardBtn = $('#jobDetailCard .btn-scrap');
+
+                if (isSaved) {
                     $btn.addClass('btn-saved').text(currentLang === 'ja' ? '保存解除' : '찜해제');
+                    AppState.scrapedJobIds.add(jobSignature); // 수첩에 쓰기
+                    $cardBtn.addClass('favorite').text(currentLang === 'ja' ? '保存解除' : '찜해제');
                 } else {
-                    // 🌟 찜 해제 시!
                     if (isSavedMode) {
-                        // 저장된 공고 탭에서 해제했다면, 리스트에서 스르륵 사라지게 만듭니다 (고급 UX)
                         $btn.closest('tr').fadeOut(300, function() {
                             $(this).remove();
-                            // 다 지워서 남은 게 없으면 '공고 없음' 메시지 띄우기
                             if ($('#listBody tr').length === 0) {
                                 $('#listBody').html(`<tr><td colspan="7" class="msg-box">${MapMessages.emptyJob}</td></tr>`);
                             }
                         });
                     } else {
-                        // 일반 주변 일자리 탭이라면 원래 회색 버튼으로 복구
                         $btn.removeClass('btn-saved').text(MapMessages.btnSave);
+                    }
+                    AppState.scrapedJobIds.delete(jobSignature); // 수첩에서 지우기
+                    $cardBtn.removeClass('favorite').text(MapMessages.btnSaveCard);
+                }
+            },
+            error: function() {
+                alert("처리 중 오류가 발생했습니다.");
+            }
+        });
+    },
+
+    toggleCardScrap: function(jobId, source) {
+        const currentLang = new URLSearchParams(window.location.search).get('lang') === 'ja' ? 'ja' : 'kr';
+        const jobSignature = jobId + '_' + source; // 에러 났던 부분! 선언 완료!
+
+        $.ajax({
+            url: '/api/scraps',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ targetPostId: jobId, targetSource: source }),
+            success: function(response) {
+                let isSaved = false;
+                if (typeof response === 'boolean') isSaved = response;
+                else if (response && response.isScraped !== undefined) isSaved = response.isScraped;
+                else if (response && response.scraped !== undefined) isSaved = response.scraped;
+                else if (response && response.result !== undefined) isSaved = response.result;
+
+                const $cardBtn = $('#jobDetailCard .btn-scrap');
+                // 리스트 안에 있는 동일한 공고의 버튼 찾기
+                const $listBtn = $(`#listBody .btn[data-id='${jobId}'][data-source='${source}']`);
+
+                if (isSaved) {
+                    // 1. 카드 파랗게, 2. 리스트 노랗게, 3. 수첩에 기록
+                    $cardBtn.addClass('favorite').text(currentLang === 'ja' ? '保存解除' : '찜해제');
+                    $listBtn.addClass('btn-saved').text(currentLang === 'ja' ? '保存解除' : '찜해제');
+                    AppState.scrapedJobIds.add(jobSignature);
+
+                    // 🌟 2. [핵심] 현재 선택된 하단 탭이 무엇인지 파악해서 해당 리스트를 완벽하게 새로고침!
+                    const activeTab = $('.nav-item.active').data('tab');
+
+                    if (activeTab === 'saved') {
+                        // '저장된 공고' 탭이라면 서버에서 찜 목록을 다시 가져옴
+                        JobService.loadSavedJobs();
+                    }
+                    else if (activeTab === 'recent') {
+                        // '최근 본 공고' 탭이라면 세션 스토리지에서 다시 그림
+                        JobService.loadRecentJobs();
+                    }
+                    else if (activeTab === 'nearby' || activeTab === 'explore' || !activeTab) {
+                        // '주변 일자리' 또는 '자유 탐색' 탭이라면 현재 지도 범위 기준으로 다시 가져옴
+                        if (AppState.lastBounds) {
+                            JobService.loadJobs(AppState.lastBounds);
+                        }
+                    }
+
+                } else {
+                    // 1. 카드 하얗게, 2. 수첩에서 삭제
+                    $cardBtn.removeClass('favorite').text(MapMessages.btnSaveCard);
+                    AppState.scrapedJobIds.delete(jobSignature);
+
+                    // 3. 리스트 버튼 복구 (저장 탭이면 리스트에서 삭제, 일반 탭이면 회색 버튼)
+                    if (AppState.isFilterMode && !AppState.isLocationMode) {
+                        $listBtn.closest('tr').fadeOut(300, function() {
+                            $(this).remove();
+                            if ($('#listBody tr').length === 0) {
+                                $('#listBody').html(`<tr><td colspan="7" class="msg-box">${MapMessages.emptyJob}</td></tr>`);
+                            }
+                        });
+                    } else {
+                        $listBtn.removeClass('btn-saved').text(MapMessages.btnSave);
                     }
                 }
             },
@@ -844,7 +979,7 @@ const UIManager = {
                 alert("처리 중 오류가 발생했습니다.");
             }
         });
-    }
+    },
 };
 
 // ============================================================
