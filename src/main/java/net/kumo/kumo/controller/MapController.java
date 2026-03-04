@@ -27,27 +27,29 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MapController {
 
-	// Key
-	@Value("${GOOGLE_MAPS_KEY}")
-	private String googleMapKey;
-	
+    // Key
+    @Value("${GOOGLE_MAPS_KEY}")
+    private String googleMapKey;
+
     private final MapService mapService;
-	private final ScrapService scrapService; // 🌟 추가: 찜하기 여부 확인용
+    private final ScrapService scrapService; // 🌟 추가: 찜하기 여부 확인용
     private final UserRepository userRepo;
 
     // --- 화면 반환 (View) ---
 
-	/**
-	 * 지도 메인페이지 연결
-	 * @return 메인 페이지
-	 */
-	@GetMapping("main")
-	public String mainMap(Model model) {
-		log.debug("메인화면 연결");
+    /**
+     * 지도 메인페이지 연결
+     * 
+     * @return 메인 페이지
+     */
+    @GetMapping("main")
+    public String mainMap(Model model) {
+        log.debug("메인화면 연결");
 
-		model.addAttribute("googleMapsKey", googleMapKey);
-		return "mainView/main";
-	}
+        model.addAttribute("googleMapsKey", googleMapKey);
+        return "mainView/main";
+    }
+
     /**
      * [VIEW] 구인 리스트 페이지 반환
      * 파일 위치: resources/templates/mapView/job_list.html
@@ -59,31 +61,24 @@ public class MapController {
 
     /**
      * 공고 상세 페이지 이동
-     * @param id        공고 아이디
-     * @param source    지역 꼬리표 'OSAKA', 'TOKYO' 등
-     * @param lang      언어 설정 'kr', 'jp'
-     * @param isOwner   공고 작성자 여부 (임시 테스트용, 추후 로그인 기능 구현시 Authenticate 로 변경)
-     * @param model
-     * @return          mapView/job_detail.html 로 이동
      */
     @GetMapping("/jobs/detail")
     public String jobDetailPage(
             @RequestParam Long id,
             @RequestParam String source,
             @RequestParam(defaultValue = "kr") String lang,
-            Principal principal, // ★ HttpSession session 대신 Spring Security의 Principal 사용
+            Principal principal,
             Model model) {
 
         // 1. 서비스에서 상세 데이터 조회
         JobDetailDTO job = mapService.getJobDetail(id, source, lang);
         boolean isOwner = false;
         boolean isSeeker = false;
+        boolean isScraped = false; // 수정된 로직 Spring Security 기반 스크랩(찜하기) 여부 확인
         UserEntity user;
 
-        // ==========================================
-        // 🌟 [수정된 로직] Spring Security 기반 스크랩(찜하기) 여부 확인
-        // ==========================================
-        boolean isScraped = false;
+        // ★ [추가] 채팅방 연결을 위해 '로그인한 내 ID'를 저장할 공간
+        Long loginUserId = null;
 
         // principal이 null이 아니면 로그인된 상태
         if (principal != null) {
@@ -92,31 +87,32 @@ public class MapController {
             user = userRepo.findByEmail(loginEmail).orElse(null);
 
             if (user != null) {
-                isScraped = scrapService.checkIsScraped(user.getUserId(), id, source);
+                // ★ [추가] 내 진짜 ID 꺼내기!
+                loginUserId = user.getUserId();
 
+                isScraped = scrapService.checkIsScraped(user.getUserId(), id, source);
                 // 공고 작성 id와 user의 id 를 비교하여 공고 작성자 동일 여부를 확인
                 // geocoded 테이블 수정 후 코드 사용
                 // isOwner = user.getUserId().equals(job.getUserId());
-
                 isSeeker = (user.getRole() == Enum.UserRole.SEEKER);
             }
         }
 
         model.addAttribute("isScraped", isScraped);
-        // ==========================================
-
         model.addAttribute("job", job);
         model.addAttribute("googleMapsKey", googleMapKey);
         model.addAttribute("isOwner", isOwner);
         model.addAttribute("isSeeker", isSeeker);
         model.addAttribute("lang", lang);
 
+        // ★ [추가] HTML(뷰)로 내 ID 쏴주기!
+        model.addAttribute("loginUserId", loginUserId);
+
         return "mapView/job_detail";
     }
 
     /**
      * 구인 신청 메서드
-     * URL: /map/api/apply
      */
     @PostMapping("/api/apply")
     @ResponseBody
@@ -156,7 +152,6 @@ public class MapController {
 
     /**
      * [NEW] 공고 삭제 API (작성자 전용)
-     * URL: /map/api/jobs
      */
     @DeleteMapping("/api/jobs")
     @ResponseBody
@@ -183,6 +178,7 @@ public class MapController {
             mapService.deleteJobPost(id, source, user);
             return ResponseEntity.ok("공고가 성공적으로 삭제되었습니다.");
         } catch (IllegalArgumentException | IllegalStateException e) {
+
             // 본인 공고가 아니거나, 공고가 존재하지 않을 때
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         } catch (Exception e) {
@@ -190,35 +186,28 @@ public class MapController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("공고 삭제 중 오류가 발생했습니다.");
         }
     }
-	
-	// ==========================================
-	// [NEW] 검색 리스트 관련 매핑
-	// ==========================================
-	
-	/**
-	 * 1. [VIEW] 검색 리스트 페이지 반환
-	 * URL: /map/search_list
-	 */
-	@GetMapping("/search_list")
-	public String searchListPage() {
-		// resources/templates/mapView/search_job_list.html 을 반환한다고 가정
-		return "mapView/search_job_list";
-	}
-	
-	
-	
+
+    // [NEW] 검색 리스트 관련 매핑
+    /**
+     * 1. [VIEW] 검색 리스트 페이지 반환
+     */
+    @GetMapping("/search_list")
+    public String searchListPage() {
+        // resources/templates/mapView/search_job_list.html 을 반환한다고 가정
+        return "mapView/search_job_list";
+    }
 
     // --- 데이터 반환 (API) ---
 
+    // ★ [복구] 스프링 3.2 500 에러 폭탄 방지 이름표 달기!
     @GetMapping("/api/jobs")
     @ResponseBody
     public List<JobSummaryDTO> getJobListApi(
-            @RequestParam Double minLat,
-            @RequestParam Double maxLat,
-            @RequestParam Double minLng,
-            @RequestParam Double maxLng,
-            @RequestParam(defaultValue = "kr") String lang
-    ) {
+            @RequestParam("minLat") Double minLat,
+            @RequestParam("maxLat") Double maxLat,
+            @RequestParam("minLng") Double minLng,
+            @RequestParam("maxLng") Double maxLng,
+            @RequestParam(value = "lang", defaultValue = "kr") String lang) {
         // 서비스가 이미 정제된(JobResponse) 데이터를 줍니다.
         return mapService.getJobListInMap(minLat, maxLat, minLng, maxLng, lang);
     }
@@ -230,7 +219,8 @@ public class MapController {
      */
     @PostMapping("/api/reports")
     @ResponseBody
-    public ResponseEntity<String> submitReport(@RequestBody ReportDTO reportDTO, Principal principal) { // ★ HttpSession 교체
+    public ResponseEntity<String> submitReport(@RequestBody ReportDTO reportDTO, Principal principal) {
+        // ★ HttpSession 교체
 
         // 1. 로그인 체크
         if (principal == null) {
@@ -251,21 +241,20 @@ public class MapController {
 
         return ResponseEntity.ok("신고가 정상적으로 접수되었습니다.");
     }
-	
-	/**
-	 * 2. [API] 검색 조건에 맞는 공고 리스트 데이터 반환
-	 * URL: /map/api/jobs/search
-	 */
-	@GetMapping("/api/jobs/search")
-	@ResponseBody
-	public List<JobDetailDTO> searchJobsApi(
-	                                         @RequestParam(required = false) String keyword,
-	                                         @RequestParam(required = false) String mainRegion,
-	                                         @RequestParam(required = false) String subRegion,
-	                                         @RequestParam(defaultValue = "kr") String lang
-	) {
-		log.info("검색 API 호출됨 - keyword: {}, mainRegion: {}, subRegion: {}", keyword, mainRegion, subRegion);
-		
-		return mapService.searchJobsList(keyword, mainRegion, subRegion, lang);
-	}
+
+    /**
+     * 2. [API] 검색 조건에 맞는 공고 리스트 데이터 반환
+     * URL: /map/api/jobs/search
+     */
+    // ★ [복구] 스프링 3.2 500 에러 폭탄 방지 이름표 달기!
+    @GetMapping("/api/jobs/search")
+    @ResponseBody
+    public List<JobDetailDTO> searchJobsApi(
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "mainRegion", required = false) String mainRegion,
+            @RequestParam(value = "subRegion", required = false) String subRegion,
+            @RequestParam(value = "lang", defaultValue = "kr") String lang) {
+        log.info("검색 API 호출됨 - keyword: {}, mainRegion: {}, subRegion: {}", keyword, mainRegion, subRegion);
+        return mapService.searchJobsList(keyword, mainRegion, subRegion, lang);
+    }
 }

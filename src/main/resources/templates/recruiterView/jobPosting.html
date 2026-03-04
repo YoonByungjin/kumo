@@ -29,15 +29,15 @@
       <main class="content-body">
         <div class="posting-card">
           <h2 class="posting-title" th:text="#{post.title}">공고 등록</h2>
-    
+
           <form th:action="@{/Recruiter/JobPosting}" method="post" enctype="multipart/form-data" id="jobPostForm">
-    
+
             <div class="form-group mb-4">
               <label class="form-label" th:text="#{post.label.subject}">제목</label>
-              <input type="text" name="title" class="form-control kumo-input" th:placeholder="#{post.placeholder.subject}"
-                required />
+              <input type="text" name="title" class="form-control kumo-input"
+                th:placeholder="#{post.placeholder.subject}" required />
             </div>
-    
+
             <div class="row mb-4">
               <div class="col-md-6">
                 <label class="form-label" th:text="#{post.label.task}">업무</label>
@@ -50,13 +50,13 @@
                   th:placeholder="#{post.placeholder.task_detail}" />
               </div>
             </div>
-    
+
             <div class="form-group mb-4">
               <label class="form-label" th:text="#{post.label.contact}">연락처</label>
               <input type="text" name="contactPhone" class="form-control kumo-input"
                 th:placeholder="#{post.placeholder.contact}" required />
             </div>
-    
+
             <div class="form-group mb-4">
               <label class="form-label" th:text="#{post.label.wage}">급여</label>
               <div class="d-flex align-items-center gap-2">
@@ -67,12 +67,13 @@
                   <option value="SALARY" th:text="#{post.wage.yearly}">연봉</option>
                 </select>
                 <div class="position-relative flex-grow-1">
-                  <input type="number" name="salaryAmount" class="form-control kumo-input" style="padding-right: 40px;" />
+                  <input type="number" name="salaryAmount" class="form-control kumo-input"
+                    style="padding-right: 40px;" />
                   <span class="position-absolute end-0 top-50 translate-middle-y me-3 text-muted">円</span>
                 </div>
               </div>
             </div>
-            
+
             <div class="form-group mb-4">
               <label class="form-label" th:text="#{post.label.photo}">사진 업로드</label>
               <div class="upload-container" id="uploadContainer">
@@ -83,7 +84,7 @@
               </div>
               <div id="previewArea" class="d-flex flex-wrap gap-2 mt-2"></div>
             </div>
-    
+
             <div class="form-group mb-4">
               <label class="form-label" th:text="#{post.label.select_biz}">등록 회사 선택</label>
               <div class="company-selection-box">
@@ -92,9 +93,11 @@
                     <i class="bi bi-building text-primary"></i>
                   </span>
                   <select name="companyId" id="selectedCompanyId" class="form-select kumo-input-sm border-0" required>
-                    <option value="" disabled th:selected="${#lists.isEmpty(companies)}" th:text="#{post.guide.select_biz}">
+                    <option value="" disabled th:selected="${#lists.isEmpty(companies)}"
+                      th:text="#{post.guide.select_biz}">
                       회사를 선택해주세요</option>
-                    <option th:each="company : ${companies}" th:value="${company.companyId}" th:text="${company.bizName}">
+                    <option th:each="company : ${companies}" th:value="${company.companyId}"
+                      th:text="${company.bizName}">
                       회사이름
                     </option>
                   </select>
@@ -110,73 +113,73 @@
             </div>
 
             <input type="hidden" name="companyId" id="companyId">
-    
+
             <div class="form-group mb-5">
               <label class="form-label" th:text="#{post.label.detail}">상세정보</label>
               <textarea name="body" class="form-control kumo-input" rows="6"
                 th:placeholder="#{post.placeholder.detail}"></textarea>
             </div>
-    
+
             <div class="text-center mb-5">
               <button type="submit" class="btn btn-primary kumo-btn-submit" th:text="#{post.btn.submit}">
                 등록
               </button>
             </div>
-    
+
           </form>
         </div>
-  </div>
+    </div>
 
-  <script th:inline="javascript">
-    /* <![CDATA[ */
+    <script th:inline="javascript">
+      /* <![CDATA[ */
 
-    // 1. 마감일 hidden input 조합
-    document.getElementById('jobPostForm').addEventListener('submit', function (e) {
-      const y = document.getElementById('dl-year').value;
-      const m = document.getElementById('dl-month').value.padStart(2, '0');
-      const d = document.getElementById('dl-day').value.padStart(2, '0');
-      const t = document.getElementById('dl-time').value;
+      // 1. 마감일 hidden input 조합
+      document.getElementById('jobPostForm').addEventListener('submit', function (e) {
+        const y = document.getElementById('dl-year').value;
+        const m = document.getElementById('dl-month').value.padStart(2, '0');
+        const d = document.getElementById('dl-day').value.padStart(2, '0');
+        const t = document.getElementById('dl-time').value;
 
-      if (y && m && d) {
-        const time = t ? 'T' + t : '';
-        document.getElementById('hiddenDeadline').value = `${y}-${m}-${d}${time}`;
-      }
-    });
-
-    // 2. 회사 선택
-    function selectCompanyForPost(companyId, btnElement) {
-      document.getElementById('selectedCompanyId').value = companyId;
-      document.querySelectorAll('#companySelectTabs .nav-pill')
-        .forEach(tab => tab.classList.remove('active'));
-      if (btnElement) btnElement.classList.add('active');
-    }
-
-    // 3. 이미지 미리보기
-    document.getElementById('file-upload').addEventListener('change', function () {
-      const previewArea = document.getElementById('previewArea');
-      previewArea.innerHTML = '';
-
-      Array.from(this.files).forEach(file => {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          const wrapper = document.createElement('div');
-          wrapper.style.cssText = 'position:relative; width:80px; height:80px;';
-
-          const img = document.createElement('img');
-          img.src = e.target.result;
-          img.style.cssText = 'width:80px; height:80px; object-fit:cover; border-radius:10px; border:2px solid #e5e8eb;';
-
-          wrapper.appendChild(img);
-          previewArea.appendChild(wrapper);
-        };
-        reader.readAsDataURL(file);
+        if (y && m && d) {
+          const time = t ? 'T' + t : '';
+          document.getElementById('hiddenDeadline').value = `${y}-${m}-${d}${time}`;
+        }
       });
-    });
 
-    /* ]]> */
-  </script>
+      // 2. 회사 선택
+      function selectCompanyForPost(companyId, btnElement) {
+        document.getElementById('selectedCompanyId').value = companyId;
+        document.querySelectorAll('#companySelectTabs .nav-pill')
+          .forEach(tab => tab.classList.remove('active'));
+        if (btnElement) btnElement.classList.add('active');
+      }
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+      // 3. 이미지 미리보기
+      document.getElementById('file-upload').addEventListener('change', function () {
+        const previewArea = document.getElementById('previewArea');
+        previewArea.innerHTML = '';
+
+        Array.from(this.files).forEach(file => {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const wrapper = document.createElement('div');
+            wrapper.style.cssText = 'position:relative; width:80px; height:80px;';
+
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.style.cssText = 'width:80px; height:80px; object-fit:cover; border-radius:10px; border:2px solid #e5e8eb;';
+
+            wrapper.appendChild(img);
+            previewArea.appendChild(wrapper);
+          };
+          reader.readAsDataURL(file);
+        });
+      });
+
+      /* ]]> */
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
