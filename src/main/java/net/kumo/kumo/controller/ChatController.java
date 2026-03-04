@@ -5,6 +5,7 @@ import net.kumo.kumo.domain.dto.ChatMessageDTO;
 import net.kumo.kumo.domain.dto.ChatRoomListDTO;
 import net.kumo.kumo.domain.entity.ChatRoomEntity;
 import net.kumo.kumo.domain.entity.UserEntity;
+import net.kumo.kumo.repository.UserRepository;
 import net.kumo.kumo.service.ChatService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +28,7 @@ public class ChatController {
 
     private final ChatService chatService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final UserRepository userRepository;
 
     // [이식 포인트] application.properties의 file.upload.chat 값을 가져옵니다.
     @Value("${file.upload.chat}")
@@ -166,10 +168,6 @@ public class ChatController {
     // 3. [실시간 통신] 메시지 주고 받기 (WebSocket)
     // ======================================================================
 
-    // ======================================================================
-    // 3. [실시간 통신] 메시지 주고 받기 (WebSocket)
-    // ======================================================================
-
     @MessageMapping("/chat/message")
     public void sendMessage(ChatMessageDTO messageDTO) {
         // 1. DB에 메시지 저장
@@ -196,6 +194,29 @@ public class ChatController {
         }
     }
 
+    // ======================================================================
+    // ★ [수정됨] 채팅방 개설 및 입장 로직 (구인자 빙의 버그 해결)
+    // ======================================================================
+    // ChatController.java 내부
+    @GetMapping("/chat/create")
+    public String createRoom(
+            @RequestParam("recruiterEmail") String recruiterEmail, // 🌟 이메일로 받음
+            @RequestParam("seekerId") Long seekerId,
+            @RequestParam(value = "jobPostId", required = false) Long jobPostId) {
+
+        // 1. 이메일로 진짜 구인자 ID(UserEntity) 찾기
+        UserEntity recruiter = userRepository.findByEmail(recruiterEmail)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        Long recruiterId = recruiter.getUserId();
+
+        // 2. 방 개설
+        ChatRoomEntity room = chatService.createOrGetChatRoom(seekerId, recruiterId, jobPostId);
+
+        // 3. 찾은 아이디로 방 입장!
+        return "redirect:/chat/room/" + room.getId() + "?userId=" + recruiterId;
+    }
+
+    /*
     @GetMapping("/chat/create")
     public String createRoom(
             @RequestParam("recruiterId") Long recruiterId,
@@ -207,7 +228,7 @@ public class ChatController {
 
         // 2. 생성된(혹은 찾은) 방으로 즉시 이동
         return "redirect:/chat/room/" + room.getId() + "?userId=" + seekerId;
-    }
+    }*/
 
     // ======================================================================
     // ★ [LIVE] 상대방이 방에 들어오거나 메시지를 읽었을 때 '1' 지우기 ★

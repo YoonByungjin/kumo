@@ -37,6 +37,8 @@
 <body>
 <header th:replace="~{recruiterView/fragments/recruiterHeader :: headerFragment}"></header>
 
+<input type="hidden" id="loginUserEmail" th:value="${#authentication.principal.email}">
+
 <div class="dashboard-wrapper">
     <div th:replace="~{recruiterView/fragments/sidebar :: sidebarFragment}"></div>
 
@@ -117,6 +119,7 @@
                                                         onclick="loadResumeData(this)"
                                                         th:data-app-id="${app.appId}"
                                                         th:data-seeker-id="${app.seekerId}"
+                                                        th:data-job-id="${jobGroup.jobId}"
                                                         th:data-name="${app.seekerName}"
                                                         th:data-contact="${app.seekerContact}"
                                                         th:data-email="${app.seekerEmail}"
@@ -172,23 +175,26 @@
 
 <script>
     let currentAppId = null;
+    let currentSeekerId = null; // 채팅방 생성용 구직자 ID 변수 추가
+    let currentJobId = null;    // 채팅방 생성용 공고 ID 변수 추가
 
     // 모달창 데이터 불러오기
     async function loadResumeData(btn) {
         currentAppId = btn.getAttribute('data-app-id');
+        currentSeekerId = btn.getAttribute('data-seeker-id'); // 버튼에서 값 추출
+        currentJobId = btn.getAttribute('data-job-id');       // 버튼에서 값 추출
 
         document.getElementById('modalName').innerText = btn.getAttribute('data-name');
         document.getElementById('modalContact').innerText = btn.getAttribute('data-contact') || '-';
         document.getElementById('modalEmail').innerText = btn.getAttribute('data-email') || '-';
         document.getElementById('modalJob').innerText = btn.getAttribute('data-job');
 
-        const seekerId = btn.getAttribute('data-seeker-id');
         const modalBody = document.getElementById('dynamicResumeBody');
-
         modalBody.innerHTML = `<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted">이력서 데이터를 불러오는 중입니다...</p></div>`;
 
         try {
-            const response = await fetch(`/Recruiter/api/resume/${seekerId}`);
+            // 이력서 조회 API 호출 시 currentSeekerId 사용
+            const response = await fetch(`/Recruiter/api/resume/${currentSeekerId}`);
             if(!response.ok) throw new Error('데이터 로드 실패');
             const data = await response.json();
             setTimeout(() => { renderResume(data, modalBody); }, 300);
@@ -284,18 +290,20 @@
         }
     }
 
-    // 🌟 채팅 기능 연결 대기용 함수
+    // =========================================================================
+    // 🌟 [핵심 3] 채팅방 생성 후 리다이렉트 처리
+    // =========================================================================
     function actionChat() {
-        // 추후 채팅방 개설 API 호출 및 화면 이동 로직 작성 공간
-        Swal.fire({
-            icon: 'info',
-            title: '안내',
-            text: '1:1 채팅 제안 기능은 추후 연동될 예정입니다.',
-            confirmButtonColor: '#7db4e6'
-        });
+        // 🌟 수정: id 대신 이메일을 가져옵니다.
+        const recruiterEmail = document.getElementById('loginUserEmail').value;
 
-        // 예시:
-        // window.location.href = `/chat/room?appId=${currentAppId}`;
+        if (!currentSeekerId || !currentJobId || !recruiterEmail) {
+            Swal.fire({ icon: 'error', title: '오류', text: '정보가 부족합니다.' });
+            return;
+        }
+
+        // 백엔드 API로 recruiterEmail을 보냅니다!
+        window.location.href = `/chat/create?seekerId=${currentSeekerId}&recruiterEmail=${recruiterEmail}&jobPostId=${currentJobId}`;
     }
 </script>
 
