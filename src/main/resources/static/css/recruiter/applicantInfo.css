@@ -307,13 +307,19 @@ body.dark-mode .table-title {
 
 /* 모달 버튼 */
 .modal-footer .btn-outline-secondary {
-  border-color: #dee2e6;
-  color: #6c757d;
+  border-color: #ff6b6b;
+  color: #ff6b6b;
   border-radius: 10px;
   font-weight: 600;
   font-size: 13px;
   padding: 8px 20px;
   transition: all 0.2s;
+}
+
+.modal-footer .btn-outline-secondary:hover {
+  background-color: #ff6b6b;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.35);
 }
 
 .modal-footer .btn-primary {
@@ -579,15 +585,21 @@ body.dark-mode .modal-footer {
   border-top: 1px solid #37393d !important;
 }
 
+body.dark-mode .badge.bg-secondary {
+  background-color: rgba(255, 107, 107, 0.1) !important;
+  color: #ff6b6b !important;
+  border: 1px solid rgba(255, 107, 107, 0.3) !important;
+}
+
 body.dark-mode .modal-footer .btn-outline-secondary {
-  border-color: #37393d !important;
-  color: #91959b !important;
-  background-color: #2a2b2e !important;
+  border-color: #ff6b6b !important;
+  color: #ff6b6b !important;
+  background-color: transparent !important;
 }
 
 body.dark-mode .modal-footer .btn-outline-secondary:hover {
-  background-color: #37393d !important;
-  color: #e3e5e8 !important;
+  background-color: rgba(255, 107, 107, 0.15) !important;
+  color: #ff6b6b !important;
 }
 
 body.dark-mode .modal-footer .btn-primary {
