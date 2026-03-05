@@ -177,8 +177,10 @@ body.dark-mode .table-title {
 }
 
 .badge.bg-secondary {
-  background-color: #f0f1f6 !important;
-  color: #868e96 !important;
+  background-color: #fff5f5 !important;
+  /* 부드럽고 연한 핑크베이지 배경 */
+  color: #ff6b6b !important;
+  /* 눈이 편안한 차분한 파스텔 레드 */
 }
 
 .badge.bg-primary {
@@ -628,4 +630,10 @@ body.dark-mode .resume-section .btn-light {
 /* 스피너 */
 body.dark-mode .spinner-border {
   color: #7db4e6 !important;
+}
+
+/* 🌙 다크모드에서 클래스가 없는 기본 행(검토중 등)의 배경색 해결 */
+body.dark-mode .mini-table tbody tr td {
+  background-color: transparent !important;
+  /* 부트스트랩이 강제로 넣는 화이트 배경을 제거합니다 */
 }

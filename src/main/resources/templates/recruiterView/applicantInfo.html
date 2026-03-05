@@ -113,9 +113,9 @@
                                             </td>
                                             <td class="text-muted" th:text="${app.appliedAt}">지원일</td>
                                             <td class="status-cell">
-                                                        <span class="badge bg-warning text-dark"
-                                                              th:if="${app.status.name() == 'APPLIED'}"
-                                                              th:text="#{app.info.badge.applied}">검토중</span>
+                                                <span class="badge bg-warning"
+                                                      th:if="${app.status.name() == 'APPLIED'}"
+                                                      th:text="#{app.info.badge.applied}">검토중</span>
                                                 <span class="badge bg-success"
                                                       th:if="${app.status.name() == 'PASSED'}"
                                                       th:text="#{app.info.badge.passed}">합격</span>
@@ -159,7 +159,7 @@
 <div class="modal fade" id="resumeModal" tabindex="-1" aria-labelledby="resumeModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
-            <div class="modal-header bg-light">
+            <div class="modal-header">
                 <div>
                     <h4 class="modal-title fw-bold" id="resumeModalLabel">
                         <span id="modalName">-</span>
@@ -179,7 +179,7 @@
                     <p class="mt-2 text-muted" th:text="#{app.info.modal.loading}">불러오는 중...</p>
                 </div>
             </div>
-            <div class="modal-footer justify-content-between bg-light">
+            <div class="modal-footer justify-content-between">
                 <button type="button" class="btn btn-outline-secondary px-4" id="btnReject"
                         onclick="updateAppStatus('FAILED')">
                     <i class="bi bi-x-circle me-1"></i>
