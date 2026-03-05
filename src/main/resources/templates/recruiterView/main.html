@@ -138,7 +138,9 @@
                               th:text="${#strings.length(t.user.nameKanjiMei ?: t.user.nickname) > 1 
                                        ? #strings.substring(t.user.nameKanjiMei ?: t.user.nickname, 0, 1) + '*' + #strings.substring(t.user.nameKanjiMei ?: t.user.nickname, #strings.length(t.user.nameKanjiMei ?: t.user.nickname)-1) 
                                        : t.user.nameKanjiMei ?: t.user.nickname}">이름</span>
-                        <span class="scout-sub-text" th:text="${t.careerType == 'EXPERIENCED' ? '경력' : '신입'}">등급</span>
+                        <span class="scout-sub-text" th:text="${t.careerType == 'EXPERIENCED'} ? #{resume.btn.experienced} : #{resume.btn.newcomer}">
+                          캐리어
+                        </span>
                       </div>
                     </div>
                     <div class="scout-right">

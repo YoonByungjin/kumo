@@ -202,3 +202,24 @@ body.dark-mode .btn-cancel-app:hover {
     background: rgba(255, 107, 107, 0.25);
     color: #ffaaaa;
 }
+
+/* 1. 검토중 (Pending) - 쿠모 인디고/차콜 (기본 상태) */
+.status-pending {
+    background-color: rgba(165, 214, 167, 0.1);
+    color: #a5d6a7;
+}
+
+/* 2. 합격 (Passed) - 긍정적인 파스텔 블루/민트 */
+.status-passed {
+    background-color: rgba(125, 180, 230, 0.1);
+    border: 1px solid rgba(125, 180, 230, 0.3);
+    color: #7db4e6;
+    /* 쿠모 블루 */
+}
+
+/* 3. 불합격 (Rejected) - 차분한 그레이/톤다운 레드 */
+.status-rejected {
+    background-color: rgba(158, 158, 158, 0.1);
+    border: 1px solid rgba(158, 158, 158, 0.2);
+    color: #9e9e9e;
+}
