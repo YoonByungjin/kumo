@@ -86,13 +86,8 @@
                 </h4>
               </div>
               <div class="stat-card">
-                <span class="text-muted small" th:text="#{main.stat.total_jobs}"
-                  >모집 중 공고</span
-                >
-                <h4
-                  class="fw-bold mt-2 mb-0"
-                  th:text="${#lists.size(jobList)}"
-                >
+                <span class="text-muted small" th:text="#{main.stat.total_jobs}">모집 중 공고</span>
+                <h4 class="fw-bold mt-2 mb-0" th:text="${#lists.size(jobList.?[status == 'RECRUITING'])}">
                   0
                 </h4>
               </div>
