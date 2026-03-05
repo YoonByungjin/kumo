@@ -1,4 +1,21 @@
+// 안녕하세요
 package net.kumo.kumo.controller;
+
+import java.security.Principal;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -6,20 +23,11 @@ import net.kumo.kumo.domain.dto.ApplicationDTO;
 import net.kumo.kumo.domain.dto.JobDetailDTO;
 import net.kumo.kumo.domain.dto.JobSummaryDTO;
 import net.kumo.kumo.domain.dto.ReportDTO;
-import net.kumo.kumo.domain.entity.UserEntity;
 import net.kumo.kumo.domain.entity.Enum;
+import net.kumo.kumo.domain.entity.UserEntity;
 import net.kumo.kumo.repository.UserRepository;
 import net.kumo.kumo.service.MapService;
 import net.kumo.kumo.service.ScrapService;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-
-import java.security.Principal;
-import java.util.List;
 
 @Slf4j
 @Controller
@@ -27,27 +35,29 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MapController {
 
-	// Key
-	@Value("${GOOGLE_MAPS_KEY}")
-	private String googleMapKey;
-	
+    // Key
+    @Value("${GOOGLE_MAPS_KEY}")
+    private String googleMapKey;
+
     private final MapService mapService;
-	private final ScrapService scrapService; // 🌟 추가: 찜하기 여부 확인용
+    private final ScrapService scrapService; // 🌟 추가: 찜하기 여부 확인용
     private final UserRepository userRepo;
 
     // --- 화면 반환 (View) ---
 
-	/**
-	 * 지도 메인페이지 연결
-	 * @return 메인 페이지
-	 */
-	@GetMapping("main")
-	public String mainMap(Model model) {
-		log.debug("메인화면 연결");
+    /**
+     * 지도 메인페이지 연결
+     * 
+     * @return 메인 페이지
+     */
+    @GetMapping("main")
+    public String mainMap(Model model) {
+        log.debug("메인화면 연결");
 
-		model.addAttribute("googleMapsKey", googleMapKey);
-		return "mainView/main";
-	}
+        model.addAttribute("googleMapsKey", googleMapKey);
+        return "mainView/main";
+    }
+
     /**
      * [VIEW] 구인 리스트 페이지 반환
      * 파일 위치: resources/templates/mapView/job_list.html
@@ -59,12 +69,13 @@ public class MapController {
 
     /**
      * 공고 상세 페이지 이동
-     * @param id        공고 아이디
-     * @param source    지역 꼬리표 'OSAKA', 'TOKYO' 등
-     * @param lang      언어 설정 'kr', 'jp'
-     * @param isOwner   공고 작성자 여부 (임시 테스트용, 추후 로그인 기능 구현시 Authenticate 로 변경)
+     * 
+     * @param id      공고 아이디
+     * @param source  지역 꼬리표 'OSAKA', 'TOKYO' 등
+     * @param lang    언어 설정 'kr', 'jp'
+     * @param isOwner 공고 작성자 여부 (임시 테스트용, 추후 로그인 기능 구현시 Authenticate 로 변경)
      * @param model
-     * @return          mapView/job_detail.html 로 이동
+     * @return mapView/job_detail.html 로 이동
      */
     @GetMapping("/jobs/detail")
     public String jobDetailPage(
@@ -190,23 +201,20 @@ public class MapController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("공고 삭제 중 오류가 발생했습니다.");
         }
     }
-	
-	// ==========================================
-	// [NEW] 검색 리스트 관련 매핑
-	// ==========================================
-	
-	/**
-	 * 1. [VIEW] 검색 리스트 페이지 반환
-	 * URL: /map/search_list
-	 */
-	@GetMapping("/search_list")
-	public String searchListPage() {
-		// resources/templates/mapView/search_job_list.html 을 반환한다고 가정
-		return "mapView/search_job_list";
-	}
-	
-	
-	
+
+    // ==========================================
+    // [NEW] 검색 리스트 관련 매핑
+    // ==========================================
+
+    /**
+     * 1. [VIEW] 검색 리스트 페이지 반환
+     * URL: /map/search_list
+     */
+    @GetMapping("/search_list")
+    public String searchListPage() {
+        // resources/templates/mapView/search_job_list.html 을 반환한다고 가정
+        return "mapView/search_job_list";
+    }
 
     // --- 데이터 반환 (API) ---
 
@@ -217,8 +225,7 @@ public class MapController {
             @RequestParam Double maxLat,
             @RequestParam Double minLng,
             @RequestParam Double maxLng,
-            @RequestParam(defaultValue = "kr") String lang
-    ) {
+            @RequestParam(defaultValue = "kr") String lang) {
         // 서비스가 이미 정제된(JobResponse) 데이터를 줍니다.
         return mapService.getJobListInMap(minLat, maxLat, minLng, maxLng, lang);
     }
@@ -230,7 +237,8 @@ public class MapController {
      */
     @PostMapping("/api/reports")
     @ResponseBody
-    public ResponseEntity<String> submitReport(@RequestBody ReportDTO reportDTO, Principal principal) { // ★ HttpSession 교체
+    public ResponseEntity<String> submitReport(@RequestBody ReportDTO reportDTO, Principal principal) { // ★ HttpSession
+                                                                                                        // 교체
 
         // 1. 로그인 체크
         if (principal == null) {
@@ -251,21 +259,20 @@ public class MapController {
 
         return ResponseEntity.ok("신고가 정상적으로 접수되었습니다.");
     }
-	
-	/**
-	 * 2. [API] 검색 조건에 맞는 공고 리스트 데이터 반환
-	 * URL: /map/api/jobs/search
-	 */
-	@GetMapping("/api/jobs/search")
-	@ResponseBody
-	public List<JobDetailDTO> searchJobsApi(
-	                                         @RequestParam(required = false) String keyword,
-	                                         @RequestParam(required = false) String mainRegion,
-	                                         @RequestParam(required = false) String subRegion,
-	                                         @RequestParam(defaultValue = "kr") String lang
-	) {
-		log.info("검색 API 호출됨 - keyword: {}, mainRegion: {}, subRegion: {}", keyword, mainRegion, subRegion);
-		
-		return mapService.searchJobsList(keyword, mainRegion, subRegion, lang);
-	}
+
+    /**
+     * 2. [API] 검색 조건에 맞는 공고 리스트 데이터 반환
+     * URL: /map/api/jobs/search
+     */
+    @GetMapping("/api/jobs/search")
+    @ResponseBody
+    public List<JobDetailDTO> searchJobsApi(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String mainRegion,
+            @RequestParam(required = false) String subRegion,
+            @RequestParam(defaultValue = "kr") String lang) {
+        log.info("검색 API 호출됨 - keyword: {}, mainRegion: {}, subRegion: {}", keyword, mainRegion, subRegion);
+
+        return mapService.searchJobsList(keyword, mainRegion, subRegion, lang);
+    }
 }

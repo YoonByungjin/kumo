@@ -1,3 +1,4 @@
+// 안녕하세요
 package net.kumo.kumo.security;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -7,7 +8,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -50,7 +50,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
 						.requestMatchers("/map_non_login_view", "/FindId", "/FindPw", "/findIdProc", "/nickname",
 								"/changePw", "/map/main", "/map/job-list-view")
 						.permitAll()
-						
+
 						// (3) 권한별 접근 제한
 						.requestMatchers("/Recruiter/**").hasRole("RECRUITER")
 						.requestMatchers("/Seeker/**").hasRole("SEEKER")
@@ -78,12 +78,10 @@ public class WebSecurityConfig implements WebMvcConfigurer {
 						.logoutSuccessUrl("/")
 						.invalidateHttpSession(true)
 						.deleteCookies("JSESSIONID"))
-				
-				
+
 				// 5. 채팅창 팝업 출력관련 (iframe 허용)
 				.headers((headers) -> headers
-						.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
-				); // 🌟 여기에 세미콜론(;) 추가!
+						.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)); // 🌟 여기에 세미콜론(;) 추가!
 
 		return http.build();
 	}
@@ -91,8 +89,8 @@ public class WebSecurityConfig implements WebMvcConfigurer {
 	// 비밀번호 암호화 빈
 	@Bean
 	public PasswordEncoder passwordEncoder() {
-//		return new BCryptPasswordEncoder();
+		// return new BCryptPasswordEncoder();
 		return org.springframework.security.crypto.password.NoOpPasswordEncoder.getInstance();
-		
+
 	}
 }
