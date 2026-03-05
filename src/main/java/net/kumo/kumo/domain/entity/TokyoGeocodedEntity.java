@@ -1,22 +1,31 @@
 package net.kumo.kumo.domain.entity;
 
-import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.CreationTimestamp;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 import net.kumo.kumo.domain.enums.JobStatus;
-import org.hibernate.annotations.CreationTimestamp;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "tokyo_geocoded")
 @Getter
 @Setter
 public class TokyoGeocodedEntity extends BaseEntity {
-	
+
 	@Column(name = "row_no")
 	private Integer rowNo;
-	
+
 	@Column(name = "datanum", unique = true)
 	private Long datanum;
 	
@@ -55,10 +64,11 @@ public class TokyoGeocodedEntity extends BaseEntity {
 
 	@Column(name = "wage_jp")
 	private String wageJp;
-	
+
+	// 추가된 notes 필드 (원문)
 	@Column(name = "notes", columnDefinition = "TEXT")
 	private String notes;
-	
+
 	@Column(name = "title_jp", length = 150)
 	private String titleJp;
 
@@ -123,8 +133,8 @@ public class TokyoGeocodedEntity extends BaseEntity {
 	public void prePersist() {
 		if (this.status == null)
 			this.status = JobStatus.RECRUITING;
-		if (this.viewCount == null)
-			this.viewCount = 0;
+//		if (this.viewCount == null)
+//			this.viewCount = 0;
 	}
 	
 	@Column(name = "salary_type")
@@ -132,7 +142,4 @@ public class TokyoGeocodedEntity extends BaseEntity {
 	
 	@Column(name = "salary_amount")
 	private Integer salaryAmount;
-
-	@Column(name = "view_count", columnDefinition = "INT DEFAULT 0")
-	private Integer viewCount;
 }

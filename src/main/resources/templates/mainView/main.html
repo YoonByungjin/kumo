@@ -79,14 +79,12 @@
 			</th:block>
 		</div>
 	</div>
+	
 	<div id="jobDetailCard" class="floating-card">
 		<button type="button" class="btn-close-card">×</button>
 		
 		<div class="card-header-section">
-			<div class="profile-info">
-				<div id="card-company" class="company-name">ABC Company</div>
-				<div id="card-manager" class="manager-name">田中 部長</div>
-			</div>
+			<div id="card-company" class="company-name">ABC Company</div>
 		</div>
 
         <div class="card-image-wrapper">
@@ -101,7 +99,7 @@
 		</div>
 		
 		<div class="card-footer-section">
-			<button class="btn-outline">찜하기</button>
+			<button class="btn-scrap">찜하기</button>
 			<button id="btn-detail" class="btn-primary-custom">자세히 보기</button>
 		</div>
 	</div>
@@ -114,7 +112,7 @@
 	</div>
 	
 	<div class="sheet-content">
-		<h2 id="sheetTitle" style="padding: 0 10px; font-size: 18px;">구직 정보 리스트 📋</h2>
+		<h2 id="sheetTitle" style="padding: 0 10px; font-size: 18px;"></h2>
 		
 		<div class="table-wrapper">
 			<table class="job-table">
@@ -177,6 +175,7 @@
 		titleNearby: /*[[#{js.map.title.nearby}]]*/ '내 주변 구직 정보 📍',
 		titleSaved: /*[[#{js.map.title.saved}]]*/ '즐겨찾기한 구직 정보 ⭐',
 		titleRecent: /*[[#{js.map.title.recent}]]*/ '최근 본 구직 정보 🕒',
+		titleExplore: /*[[#{js.map.title.explore}]]*/ '구직 정보 리스트 📋', // 탐색 모드
 		table: [
 			/*[[#{js.map.table.title}]]*/ '제목',
 			/*[[#{js.map.table.company}]]*/ '상호명',
