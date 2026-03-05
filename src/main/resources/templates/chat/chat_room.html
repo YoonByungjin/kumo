@@ -46,9 +46,9 @@
         </div>
 
         <div class="msg-area" id="msgArea">
-            <th:block th:each="msg, stat : ${history}">
+            <th:block th:each="msg, stat : ${chatHistory}">
 
-                <th:block th:if="${stat.first or msg.createdDate != history[stat.index - 1].createdDate}">
+                <th:block th:if="${stat.first or msg.createdDate != chatHistory[stat.index - 1].createdDate}">
                     <div class="date-divider" th:if="${msg.createdDate != null}">
                         <span class="date-divider-text" th:text="${msg.createdDate}">2026-02-26</span>
                     </div>
@@ -63,13 +63,13 @@
 
                     <th:block th:if="${msg.messageType == 'IMAGE'}">
                         <img th:src="${msg.content}" class="chat-image"
-                            style="max-width: 200px; border-radius: 10px; margin-top: 5px;"
-                            onclick="openImageModal(this.src)">
+                             style="max-width: 200px; border-radius: 10px; margin-top: 5px;"
+                             onclick="openImageModal(this.src)">
                     </th:block>
 
                     <th:block th:if="${msg.messageType == 'FILE'}">
                         <div class="file-bubble" th:data-url="${msg.content}"
-                            onclick="window.open(this.getAttribute('data-url'))" style="cursor: pointer;">
+                             onclick="window.open(this.getAttribute('data-url'))" style="cursor: pointer;">
                             <div class="file-icon-box"><i class="fa-solid fa-file-pdf"></i></div>
                             <div class="file-info-box">
                                 <div class="raw-file-name" style="display: none;" th:text="${msg.content}"></div>
@@ -94,13 +94,13 @@
 
                     <th:block th:if="${msg.messageType == 'IMAGE'}">
                         <img th:src="${msg.content}" class="chat-image"
-                            style="max-width: 200px; border-radius: 10px; margin-top: 5px;"
-                            onclick="openImageModal(this.src)">
+                             style="max-width: 200px; border-radius: 10px; margin-top: 5px;"
+                             onclick="openImageModal(this.src)">
                     </th:block>
 
                     <th:block th:if="${msg.messageType == 'FILE'}">
                         <div class="file-bubble" th:data-url="${msg.content}"
-                            onclick="window.open(this.getAttribute('data-url'))" style="cursor: pointer;">
+                             onclick="window.open(this.getAttribute('data-url'))" style="cursor: pointer;">
                             <div class="file-icon-box"><i class="fa-solid fa-file-pdf"></i></div>
                             <div class="file-info-box">
                                 <div class="raw-file-name" style="display: none;" th:text="${msg.content}"></div>
