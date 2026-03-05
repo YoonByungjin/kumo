@@ -241,13 +241,40 @@ html, body {
 .sheet-content { height: calc(100% - 60px); overflow-y: auto; padding: 0 20px 20px 20px; box-sizing: border-box; }
 .sheet-content h2 { padding: 0 10px; font-size: 18px; color: var(--text-main); }
 
-/* 테이블 영역 */
+/* ============================================================
+   🌟 테이블 영역 (검색창과 동일한 황금비율 레이아웃)
+============================================================ */
 .table-wrapper { width: 100%; overflow-x: auto; margin-top: 10px; }
-.job-table { width: 100%; border-collapse: collapse; min-width: 600px; }
+.job-table { width: 100%; border-collapse: collapse; min-width: 1000px; table-layout: auto; } /* 🌟 800px -> 1000px로 넓혀서 검색창과 동일한 쾌적함 부여 */
 .job-table th { position: sticky; top: 0; z-index: 10; padding: 12px 10px; text-align: left; font-size: 13px; white-space: nowrap; background-color: var(--bg-hover); color: var(--text-muted); border-bottom: 2px solid var(--border-mid); }
 .job-table td { padding: 14px 10px; vertical-align: middle; font-size: 14px; border-bottom: 1px solid var(--border-light); }
+.job-table tr:hover td { background-color: var(--bg-hover); } /* 🌟 검색창처럼 마우스 올렸을 때 하이라이트 효과 추가 */
 
-.title-text { font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 4px; display: block; }
+/* 🌟 1. [마법의 1줄 고정] 회사명(2), 급여(4), 연락처(5), 담당자(6), 관리(7) 컬럼은 절대 줄바꿈 금지! */
+.job-table td:nth-child(2),
+.job-table td:nth-child(4),
+.job-table td:nth-child(5),
+.job-table td:nth-child(6),
+.job-table td:nth-child(7) {
+    white-space: nowrap !important;
+    word-break: keep-all;
+}
+
+/* 🌟 2. [비율 양보] 제목(1)과 근무지(3)는 공간을 넓게 차지하고 자연스럽게 줄바꿈 허용 */
+.job-table td:nth-child(1) { width: 35%; white-space: normal; line-height: 1.4; }
+.job-table td:nth-child(3) { width: 25%; white-space: normal; line-height: 1.4; }
+
+/* 🌟 3. [핵심] 상호명(2), 급여(4), 연락처(5)가 너무 길면 '...'으로 자르기! */
+.job-table td:nth-child(2),
+.job-table td:nth-child(4),
+.job-table td:nth-child(5) {
+    max-width: 150px; /* 이 길이를 넘어가면 자릅니다 */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 텍스트 디테일 설정 */
+.title-text { font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 4px; display: block; line-height: 1.4; }
 .company-text { color: var(--text-primary); font-weight: 700; text-decoration: none; font-size: 13px; }
 .wage-text { color: var(--text-primary); font-weight: 700; font-size: 13px; }
 .addr-text { color: var(--text-sub); font-size: 13px; }
@@ -262,9 +289,15 @@ html, body {
 .profile-info div:first-child { font-size: 12px; font-weight: 500; color: var(--text-main); }
 .profile-info div:last-child { font-size: 11px; color: var(--text-muted); }
 
-.btn-wrap { display: flex; gap: 5px; }
-.btn { border: 1px solid var(--border-mid); background: var(--bg-input); color: var(--text-main); padding: 5px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; }
-.btn-view { background: var(--btn-primary); color: white; border: none; }
+/* 버튼들이 서로 찌그러지거나 위아래로 꺾이지 않도록 강제 정렬 */
+.btn-wrap { display: flex; gap: 5px; flex-wrap: nowrap; align-items: center; }
+.btn {
+    border: 1px solid var(--border-mid); background: var(--bg-input); color: var(--text-main);
+    padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer;
+    white-space: nowrap; /* 버튼 속 글씨 꺾임 방지 */
+}
+.btn:hover { background-color: var(--bg-hover); }
+.btn-view { background: var(--btn-primary); color: white; border: none; font-weight: bold; }
 .btn-view:hover { background: var(--btn-primary-hover); }
 .msg-box { text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px; }
 
@@ -275,7 +308,6 @@ html, body {
     border: 1px solid var(--btn-saved-bg) !important;
     font-weight: bold;
 }
-
 /* ============================================================
    💬 7. 채팅 위젯
 ============================================================ */

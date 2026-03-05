@@ -739,6 +739,12 @@ const UIManager = {
             const thumb = job.thumbnailUrl || 'https://placehold.co/40';
             const dateStr = job.writeTime || MapMessages.fbTime;
             const contact = job.contactPhone || '-';
+            // 🌟 [핵심 추가] 어드민 판별 로직!
+            // 크롤링 데이터(userId가 1)이거나 담당자 이름이 비어있으면 'Admin'으로 강제 설정합니다.
+            let manager = job.manager;
+            if (job.userId === 9999 || !manager) {
+                manager = "Admin"; // 원하시면 "KUMO 공식" 등으로 바꾸셔도 됩니다!
+            }
             const detailUrl = `/map/jobs/detail?id=${job.id}&source=${job.source}&lang=${currentLang}`;
 
             const clickAttr = (job.lat && job.lng)
@@ -777,15 +783,7 @@ const UIManager = {
                 <td><span class="addr-text">${address}</span></td>
                 <td><span class="wage-text">${wage}</span></td>
                 <td><span class="contact-text">${contact}</span></td>
-                <td>
-                    <div class="profile-wrap">
-                        <img src="${thumb}" class="profile-img" onerror="this.src='https://placehold.co/40?text=No+Img'">
-                        <div class="profile-info">
-                            <div>Admin</div>
-                            <div>${dateStr}</div>
-                        </div>
-                    </div>
-                </td>
+                <td><span class="contact-text">${manager}</span></td>
                 <td>
                      <div class="btn-wrap">
                         ${saveBtnHtml}
