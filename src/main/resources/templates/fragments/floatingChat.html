@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="floatingChatFragment">
+
+    <link rel="stylesheet" th:href="@{/css/chat/floatingChat.css}" />
+    <script defer th:src="@{/js/chat/floatingChat.js}"></script>
+
+    <div id="floatingChatContainer">
+        <div id="floatingChatHeader">
+            <span class="chat-title"><i class="fa-regular fa-comment-dots"></i> KUMO 채팅</span>
+            <div class="chat-controls">
+                <i class="fa-solid fa-minus" onclick="toggleMinimizeChat()" title="최소화/복구"></i>
+                <i class="fa-solid fa-xmark" onclick="closeFloatingChat()" title="닫기"></i>
+            </div>
+        </div>
+        <iframe id="floatingChatFrame" src=""></iframe>
+    </div>
+
+</div>
+</html>

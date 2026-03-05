@@ -1,0 +1,74 @@
+/* --- src/main/resources/static/css/chat/floatingChat.css --- */
+
+#floatingChatContainer {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 400px;
+    height: 600px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    display: none;
+    flex-direction: column;
+    z-index: 9999;
+    overflow: hidden;
+    transition: height 0.3s ease;
+}
+
+#floatingChatContainer.minimized {
+    height: 55px !important;
+}
+
+#floatingChatHeader {
+    height: 55px;
+    background: #343a40;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    cursor: move;
+    user-select: none;
+}
+
+#floatingChatHeader .chat-title {
+    font-weight: 600;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#floatingChatHeader .chat-controls i {
+    cursor: pointer;
+    margin-left: 15px;
+    font-size: 16px;
+    color: #adb5bd;
+    transition: 0.2s;
+}
+
+#floatingChatHeader .chat-controls i:hover {
+    color: white;
+}
+
+#floatingChatFrame {
+    flex: 1;
+    width: 100%;
+    border: none;
+    background: #f8f9fa;
+}
+
+/* 다크모드 대응 */
+body.dark-mode #floatingChatContainer {
+    background: #1e1f21;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+    border: 1px solid #37393d;
+}
+body.dark-mode #floatingChatHeader {
+    background: #252629;
+    border-bottom: 1px solid #3e4044;
+}
+body.dark-mode #floatingChatFrame {
+    background: #1e1f21;
+}
