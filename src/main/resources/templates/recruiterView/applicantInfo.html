@@ -20,19 +20,9 @@
     <link rel="stylesheet" th:href="@{/css/recruiter/dark-theme.css}" />
     <link rel="stylesheet" th:href="@{/css/recruiter/applicantInfo.css}" />
     <link rel="stylesheet" th:href="@{/css/recruiter/calendar.css}" />
+
     <script th:src="@{/js/recruiter/rightSidebar.js}"></script>
-
-    <style>
-        .accordion-button.no-applicants::after { display: none !important; }
-        .accordion-button.no-applicants { cursor: default !important; background-color: #fafafa; }
-
-        .processed-row td {
-            background-color: #f8f9fa !important;
-            color: #adb5bd !important;
-        }
-        .processed-row .user-profile { opacity: 0.6; }
-        .processed-row .text-dark { color: #adb5bd !important; }
-    </style>
+    <script defer th:src="@{/js/recruiter/applicantInfo.js}"></script>
 </head>
 <body>
 <header th:replace="~{recruiterView/fragments/recruiterHeader :: headerFragment}"></header>
@@ -173,140 +163,16 @@
     </div>
 </div>
 
-<script>
-    let currentAppId = null;
-    let currentSeekerId = null;
-    let currentJobId = null;
-    let currentJobSource = null; // 🌟 1. 출처 변수 추가
-
-    // 모달창 데이터 불러오기
-    async function loadResumeData(btn) {
-        currentAppId = btn.getAttribute('data-app-id');
-        currentSeekerId = btn.getAttribute('data-seeker-id');
-        currentJobId = btn.getAttribute('data-job-id');
-        currentJobSource = btn.getAttribute('data-source'); // 🌟 2. 버튼에서 출처 값 추출
-
-        document.getElementById('modalName').innerText = btn.getAttribute('data-name');
-        document.getElementById('modalContact').innerText = btn.getAttribute('data-contact') || '-';
-        document.getElementById('modalEmail').innerText = btn.getAttribute('data-email') || '-';
-        document.getElementById('modalJob').innerText = btn.getAttribute('data-job');
-
-        const modalBody = document.getElementById('dynamicResumeBody');
-        modalBody.innerHTML = `<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted">이력서 데이터를 불러오는 중입니다...</p></div>`;
-
-        try {
-            const response = await fetch(`/Recruiter/api/resume/${currentSeekerId}`);
-            if(!response.ok) throw new Error('데이터 로드 실패');
-            const data = await response.json();
-            setTimeout(() => { renderResume(data, modalBody); }, 300);
-        } catch (error) {
-            modalBody.innerHTML = `<div class="text-center text-danger py-5"><i class="bi bi-exclamation-triangle fs-1"></i><p class="mt-2">이력서를 불러오지 못했습니다.</p></div>`;
-        }
-    }
-
-    // JSON 데이터를 HTML로 그리는 함수
-    function renderResume(data, container) {
-        let html = '';
-        if (data.profile) {
-            html += `<div class="resume-section"><h5><i class="bi bi-person-lines-fill me-2"></i>자기소개 (<span class="text-primary">${data.profile.careerType || '미입력'}</span>)</h5><p class="text-secondary mb-0" style="line-height: 1.6; white-space: pre-wrap;">${data.profile.selfPr || '작성된 내용이 없습니다.'}</p></div>`;
-        }
-        if (data.condition) {
-            html += `<div class="resume-section"><h5><i class="bi bi-check2-square me-2"></i>희망 근무 조건</h5><div class="spec-item"><span class="label">희망 직무</span> ${data.condition.desiredJob || '미입력'}</div><div class="spec-item"><span class="label">희망 급여</span> ${data.condition.salaryType || ''} ${data.condition.desiredSalary || '미입력'}</div></div>`;
-        }
-        html += `<div class="resume-section"><h5><i class="bi bi-briefcase-fill me-2"></i>경력 사항</h5>`;
-        if (data.careers && data.careers.length > 0) {
-            data.careers.forEach(c => {
-                html += `<div class="border-bottom pb-2 mb-2 last-no-border"><div class="fw-bold fs-6">${c.companyName} <span class="text-muted small fw-normal ms-2">(${c.department || '-'})</span></div><div class="text-muted small">${c.startDate || ''} ~ ${c.endDate || '재직중'}</div><div class="mt-1 text-secondary" style="font-size: 0.9rem; white-space: pre-wrap;">${c.description || ''}</div></div>`;
-            });
-        } else { html += `<p class="text-muted small">등록된 경력이 없습니다.</p>`; }
-        html += `</div><div class="row">`;
-
-        html += `<div class="col-md-6"><div class="resume-section h-100"><h5><i class="bi bi-mortarboard-fill me-2"></i>최종 학력</h5>`;
-        if (data.education) {
-            let e = data.education;
-            let statusKr = e.status === 'GRADUATED' ? '졸업' : (e.status === 'ATTENDING' ? '재학' : (e.status === 'EXPECTED' ? '졸업예정' : '중퇴'));
-            html += `<div class="spec-item mb-2"><span class="fw-bold d-block">${e.schoolName}</span> <span class="text-muted small">${e.major || ''} (${statusKr})</span></div>`;
-        } else { html += `<p class="text-muted small">등록된 학력이 없습니다.</p>`; }
-        html += `</div></div>`;
-
-        html += `<div class="col-md-6"><div class="resume-section h-100"><h5><i class="bi bi-award-fill me-2"></i>자격 및 어학</h5>`;
-        let certsExist = false;
-        if (data.certificates && data.certificates.length > 0) {
-            data.certificates.forEach(c => { html += `<div class="spec-item mb-2"><span class="fw-bold d-block">${c.certName}</span> <span class="text-muted small">${c.issuer || '-'} (${c.acquisitionYear || '-'}년)</span></div>`; });
-            certsExist = true;
-        }
-        if (data.languages && data.languages.length > 0) {
-            data.languages.forEach(l => { html += `<div class="spec-item mb-2"><span class="fw-bold d-block">${l.language}</span> <span class="text-muted small">Level: ${l.level || '-'}</span></div>`; });
-            certsExist = true;
-        }
-        if (!certsExist) { html += `<p class="text-muted small">등록된 자격증이나 어학 정보가 없습니다.</p>`; }
-        html += `</div></div></div>`;
-
-        if (data.documents && data.documents.length > 0) {
-            html += `<div class="resume-section mt-3"><h5><i class="bi bi-file-earmark-pdf-fill me-2"></i>첨부 파일</h5>`;
-            data.documents.forEach(d => { html += `<a href="${d.fileUrl}" class="btn btn-sm btn-light border text-primary me-2 mb-2" target="_blank"><i class="bi bi-download me-1"></i> ${d.fileName}</a>`; });
-            html += `</div>`;
-        }
-        container.innerHTML = html;
-    }
-
-    // 합격/불합격 처리 (비동기)
-    async function updateAppStatus(status) {
-        if(!currentAppId) return;
-
-        const btnApprove = document.getElementById('btnApprove');
-        const btnReject = document.getElementById('btnReject');
-        btnApprove.disabled = true; btnReject.disabled = true;
-
-        try {
-            const res = await fetch(`/Recruiter/api/application/${currentAppId}/status?status=${status}`, {
-                method: 'POST'
-            });
-
-            if(res.ok) {
-                const modalEl = document.getElementById('resumeModal');
-                const modal = bootstrap.Modal.getInstance(modalEl);
-                modal.hide();
-
-                const row = document.getElementById(`app-row-${currentAppId}`);
-                const tbody = row.parentNode;
-
-                const badgeContainer = row.querySelector('.status-cell');
-                if(status === 'PASSED') {
-                    badgeContainer.innerHTML = '<span class="badge bg-success">합격</span>';
-                } else {
-                    badgeContainer.innerHTML = '<span class="badge bg-secondary">불합격</span>';
-                }
-                row.classList.add('processed-row');
-                tbody.appendChild(row);
-
-            } else {
-                alert("상태 업데이트에 실패했습니다.");
-            }
-        } catch(e) {
-            console.error(e);
-            alert("서버 통신 중 오류가 발생했습니다.");
-        } finally {
-            btnApprove.disabled = false; btnReject.disabled = false;
-        }
-    }
-
-    // =========================================================================
-    // 🌟 [핵심 3] 채팅방 생성 후 리다이렉트 처리
-    // =========================================================================
-    function actionChat() {
-        // 구인자의 정보(이메일 등)는 백엔드가 시큐리티(AuthenticationPrincipal)로
-        // 직접 알아서 찾으므로 프론트에서 억지로 보낼 필요가 없습니다!
-
-        if (!currentSeekerId || !currentJobId || !currentJobSource) {
-            Swal.fire({ icon: 'error', title: '오류', text: '채팅방 생성에 필요한 대상 정보나 출처가 없습니다.' });
-            return;
-        }
-
-        // 백엔드 API로 대상 구직자 ID, 공고 ID, 그리고 공고 출처(Source)만 보냅니다.
-        window.location.href = `/chat/create?seekerId=${currentSeekerId}&jobPostId=${currentJobId}&jobSource=${currentJobSource}`;
-    }
-</script>
+<div id="floatingChatContainer">
+    <div id="floatingChatHeader">
+        <span class="chat-title"><i class="fa-regular fa-comment-dots"></i> 1:1 지원자 채팅</span>
+        <div class="chat-controls">
+            <i class="fa-solid fa-minus" onclick="toggleMinimizeChat()" title="최소화/복구"></i>
+            <i class="fa-solid fa-xmark" onclick="closeFloatingChat()" title="닫기"></i>
+        </div>
+    </div>
+    <iframe id="floatingChatFrame" src=""></iframe>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.10/index.global.min.js"></script>
