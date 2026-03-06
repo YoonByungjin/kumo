@@ -4,6 +4,16 @@
    [v3] 하늘색 테마 디자인 적용 (레이아웃 유지)
    ================================================== */
 
+/* 🌟 모든 요소에 Noto Sans KR 폰트 강제 적용 */
+* {
+    font-family: 'Noto Sans KR', sans-serif !important;
+}
+
+/* 🌟 고집 센 입력창과 버튼들까지 확실하게 눌러주기 */
+body, input, textarea, button, select {
+    font-family: 'Noto Sans KR', sans-serif !important;
+}
+
 /* 기본 초기화 */
 * {
     box-sizing: border-box;
@@ -851,3 +861,95 @@ dialog[open] {
 .chat-image:active {
     transform: scale(0.98);
 }
+
+/* ============================================================
+   🌙 채팅방 다크모드 (KUMO Master Palette 적용)
+   ============================================================ */
+body.dark-mode {
+    background-color: #1e1f21 !important;
+    color: #e3e5e8 !important;
+}
+
+body.dark-mode .mobile-container {
+    background-color: #1e1f21 !important;
+}
+
+/* 헤더 */
+body.dark-mode .chat-header {
+    background-color: #1e1f21 !important;
+    border-bottom: 1px solid #37393d !important;
+}
+body.dark-mode .header-store-name { color: #e3e5e8 !important; }
+body.dark-mode .header-info-row { color: #b0b3b8 !important; }
+body.dark-mode .header-salary-row { color: #7db4e6 !important; }
+body.dark-mode .header-back-btn i,
+body.dark-mode .translate-icon-img { filter: brightness(0) invert(1) opacity(0.8); }
+
+/* 메시지 영역 */
+body.dark-mode .msg-area {
+    background-color: #1e1f21 !important;
+}
+
+/* 상대방 말풍선 */
+body.dark-mode .msg-row.other .msg-bubble {
+    background-color: #2a2b2e !important;
+    color: #e3e5e8 !important;
+    border: 1px solid #37393d !important;
+}
+
+/* 내 말풍선 */
+body.dark-mode .msg-row.me .msg-bubble {
+    background-color: #7db4e6 !important;
+    color: #1e1f21 !important; /* 🌟 포인트 컬러 배경엔 어두운 글자! */
+}
+
+/* 날짜 구분선 */
+body.dark-mode .date-divider-text {
+    background-color: #252729 !important;
+    color: #91959b !important;
+    border: 1px solid #37393d !important;
+}
+
+/* 시간 & 안읽음 표시 */
+body.dark-mode .msg-time { color: #91959b !important; }
+
+/* 입력창(하단) */
+body.dark-mode .input-area {
+    background-color: #1e1f21 !important;
+    border-top: 1px solid #37393d !important;
+}
+body.dark-mode .input-field {
+    background-color: #252729 !important;
+    border: 1px solid #37393d !important;
+    color: #e3e5e8 !important;
+}
+body.dark-mode .input-field::placeholder { color: #91959b !important; }
+body.dark-mode .btn-send {
+    background-color: #7db4e6 !important;
+    color: #1e1f21 !important;
+}
+body.dark-mode .btn-plus, body.dark-mode .btn-img-upload { filter: brightness(0) invert(1) opacity(0.6); }
+
+/* 모달 메뉴 (템플릿, 플러스 메뉴) */
+body.dark-mode .main-menu-box,
+body.dark-mode .template-box {
+    background-color: #2a2b2e !important;
+    border-top: 1px solid #37393d !important;
+    color: #e3e5e8 !important;
+}
+body.dark-mode .template-header { border-bottom: 1px solid #37393d !important; }
+body.dark-mode .template-list button {
+    background-color: #252729 !important;
+    color: #e3e5e8 !important;
+    border: 1px solid #37393d !important;
+}
+body.dark-mode .template-list button:hover { background-color: #37393d !important; }
+body.dark-mode .menu-name { color: #b0b3b8 !important; }
+
+/* 파일 말풍선 */
+body.dark-mode .file-bubble {
+    background-color: #2a2b2e !important;
+    border: 1px solid #37393d !important;
+}
+body.dark-mode .file-display-name { color: #e3e5e8 !important; }
+body.dark-mode .file-display-sub { color: #91959b !important; }

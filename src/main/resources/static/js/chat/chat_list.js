@@ -1,3 +1,32 @@
+// ==========================================================
+// 🌟 [추가] 부모 창(메인 사이트) 다크모드 실시간 동기화
+// ==========================================================
+function syncDarkMode() {
+    try {
+        // 부모 창의 body에 'dark-mode' 클래스가 있는지 확인
+        if (window.parent.document.body.classList.contains('dark-mode')) {
+            document.body.classList.add('dark-mode');
+        } else {
+            document.body.classList.remove('dark-mode');
+        }
+    } catch (e) {
+        console.log("iframe 다크모드 동기화 대기 중...");
+    }
+}
+
+// 1. 채팅창이 처음 켜질 때 즉시 다크모드 검사
+syncDarkMode();
+
+// 2. 사용자가 사이트에서 다크모드 토글을 누를 때 '실시간'으로 감지해서 적용
+try {
+    const observer = new MutationObserver(syncDarkMode);
+    // 부모 창의 body 클래스가 변하는 것을 감시합니다.
+    observer.observe(window.parent.document.body, { attributes: true, attributeFilter: ['class'] });
+} catch (e) {
+    console.log("MutationObserver 연결 실패 (단독 실행 모드)");
+}
+// ==========================================================
+
 // 방 입장 함수 (수정됨)
 function enterRoom(roomId) {
     const userId = window.MY_USER_ID;
