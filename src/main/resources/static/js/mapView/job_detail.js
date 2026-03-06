@@ -237,7 +237,7 @@ function deleteJob(btnElement) {
             if (response.ok) {
                 alert(lang === 'ja' ? "削除が完了しました。" : "삭제가 완료되었습니다.");
                 // 삭제 성공 시, 공고 목록(메인) 페이지로 튕겨내기
-                window.location.href = '/map/main';
+                window.location.href = '/Recruiter/JobManage';
             } else {
                 // 권한 없음 등의 에러
                 alert(message);
