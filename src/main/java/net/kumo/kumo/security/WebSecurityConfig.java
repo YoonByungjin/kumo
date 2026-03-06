@@ -25,6 +25,9 @@ public class WebSecurityConfig implements WebMvcConfigurer {
 
 	@Override
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // uploadDir 맨 뒤에 / 가 없으면 붙여주는 안전 장치
+        String path = uploadDir.endsWith("/") ? uploadDir : uploadDir + "/";
+
 		registry.addResourceHandler("/uploads/**")
 				.addResourceLocations("file:///" + uploadDir);
 	}
@@ -45,7 +48,9 @@ public class WebSecurityConfig implements WebMvcConfigurer {
 				// 2. 권한 설정 (authorizeHttpRequests -> 람다식)
 				.authorizeHttpRequests((auth) -> auth
 						// (1) 정적 리소스: css, js, images 등
-						.requestMatchers("/css/**", "/js/**", "/images/**", "/error").permitAll()
+						// .requestMatchers("/css/**", "/js/**", "/images/**", "/error").permitAll()
+                        // 업로드 이미지 부분 추가
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/error", "/uploads/**").permitAll()
 
 						// (2) 로그인 없이 접근 가능한 페이지
 						.requestMatchers("/map/api/**").permitAll()
