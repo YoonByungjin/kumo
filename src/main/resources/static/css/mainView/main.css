@@ -104,7 +104,7 @@ html, body {
 body.dark-mode .map-header-wrapper .nav-menu {
     background-color: rgb(0 0 0 / 89%);
     border-radius: 19px;
-    padding: 3px 12px 3px 12px;
+    padding: 5px 18px 5px 18px;
 }
 
 /* ============================================================
