@@ -1,4 +1,4 @@
-/**
+/** ?????????????????????????
  * job_detail.js
  * - HTML에서 선언된 'isUserLoggedIn'과 'MESSAGES' 객체를 바로 사용합니다!
  * - 삼항 연산자와 URL 파라미터 파싱 로직은 완전히 삭제되었습니다.
@@ -204,9 +204,8 @@ function editJob(btnElement) {
         return;
     }
 
-    // TODO: 나중에 실제 공고 수정 폼 페이지 URL로 변경하세요.
-    // 기존 공고의 id와 source를 달아서 보내면, 수정 페이지 컨트롤러에서 이 값을 받아 기존 데이터를 폼에 채워줄 수 있습니다.
-    const editUrl = `/map/jobs/edit?id=${postId}&source=${source}`;
+    // RecruiterController의 주소와 파라미터명(region)에 완벽하게 일치시킵니다!
+    const editUrl = `/Recruiter/editJobPosting?id=${postId}&region=${source}`;
     window.location.href = editUrl;
 }
 
@@ -238,7 +237,7 @@ function deleteJob(btnElement) {
             if (response.ok) {
                 alert(lang === 'ja' ? "削除が完了しました。" : "삭제가 완료되었습니다.");
                 // 삭제 성공 시, 공고 목록(메인) 페이지로 튕겨내기
-                window.location.href = '/map/main';
+                window.location.href = '/Recruiter/JobManage';
             } else {
                 // 권한 없음 등의 에러
                 alert(message);

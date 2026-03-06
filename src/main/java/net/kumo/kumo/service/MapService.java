@@ -1,6 +1,7 @@
 package net.kumo.kumo.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.kumo.kumo.domain.dto.ApplicationDTO;
 import net.kumo.kumo.domain.dto.JobDetailDTO;
 import net.kumo.kumo.domain.dto.JobSummaryDTO;
@@ -17,6 +18,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MapService {
 
     private final OsakaGeocodedRepository osakaRepo;
@@ -30,17 +32,22 @@ public class MapService {
 
     // 공고 신청 리포지토리
     private final ApplicationRepository applicationRepo;
+    private final NotificationService notificationService; // 🌟 알림 서비스 주입
 
     // --- 1. 지도용 리스트 조회 ---
     @Transactional(readOnly = true)
     public List<JobSummaryDTO> getJobListInMap(Double minLat, Double maxLat, Double minLng, Double maxLng, String lang) {
         List<JobSummaryView> osakaRaw = osakaRepo.findTop300ByLatBetweenAndLngBetween(minLat, maxLat, minLng, maxLng);
         List<JobSummaryDTO> result = new ArrayList<>(osakaRaw.stream()
+                // 🌟 [추가] 상태가 null(기존 데이터)이거나 'RECRUITING'인 것만 필터링!
+                .filter(view -> view.getStatus() == null || "RECRUITING".equals(view.getStatus().name()))
                 .map(view -> new JobSummaryDTO(view, lang, "OSAKA"))
                 .toList());
 
         List<JobSummaryView> tokyoRaw = tokyoRepo.findTop300ByLatBetweenAndLngBetween(minLat, maxLat, minLng, maxLng);
         result.addAll(tokyoRaw.stream()
+                // 🌟 [추가] 도쿄도 마찬가지로 필터링!
+                .filter(view -> view.getStatus() == null || "RECRUITING".equals(view.getStatus().name()))
                 .map(view -> new JobSummaryDTO(view, lang, "TOKYO"))
                 .toList());
 
@@ -48,7 +55,8 @@ public class MapService {
     }
 
     // --- 2. 상세 페이지 조회 ---
-    @Transactional(readOnly = true)
+    // 조회수 증가 포함
+    @Transactional
     public JobDetailDTO getJobDetail(Long id, String source, String lang) {
         BaseEntity entity = null;
 
@@ -64,7 +72,13 @@ public class MapService {
         } else {
             throw new IllegalArgumentException("잘못된 접근입니다 (Source 오류).");
         }
-
+        
+        // ==========================================
+        // 🌟 [핵심] 찾은 엔티티의 조회수를 1 증가시킵니다!
+        // ==========================================
+        entity.addViewCount();
+        log.info(String.valueOf(entity.getViewCount()));
+        
         // JobDetailDTO 생성자에 source도 함께 전달
         return new JobDetailDTO(entity, lang, source);
     }
@@ -73,21 +87,40 @@ public class MapService {
     @Transactional
     public void createReport(ReportDTO dto) {
         // 1. 신고자(User) 조회
-        // DTO에 있는 reporterId로 실제 유저 엔티티를 찾아야 연관관계를 맺을 수 있음
         UserEntity reporter = userRepo.findById(dto.getReporterId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
-        // 2. 엔티티 변환 및 저장 (변경된 DB 구조 반영)
+        // 2. 엔티티 변환 및 저장
         ReportEntity report = ReportEntity.builder()
-                .reporter(reporter)            // [변경] ID 대신 UserEntity 객체 주입
+                .reporter(reporter)
                 .targetPostId(dto.getTargetPostId())
-                .targetSource(dto.getTargetSource()) // [변경] 이제 별도 컬럼에 저장
+                .targetSource(dto.getTargetSource())
                 .reasonCategory(dto.getReasonCategory())
-                .description(dto.getDescription())   // [변경] 순수 본문만 저장 (앞에 [OSAKA] 안 붙임)
-                .status("PENDING")             // 기본 상태
+                .description(dto.getDescription())
+                .status("PENDING")
                 .build();
 
         reportRepo.save(report);
+
+        // 🌟 [알림 추가] 공고 작성자(구인자)에게 신고 접수 및 수정 요청 알림 발송
+        String jobTitle = "공고";
+        UserEntity recruiter = null;
+        if ("OSAKA".equalsIgnoreCase(dto.getTargetSource())) {
+            OsakaGeocodedEntity job = osakaRepo.findById(dto.getTargetPostId()).orElse(null);
+            if (job != null) { recruiter = job.getUser(); jobTitle = job.getTitle(); }
+        } else if ("TOKYO".equalsIgnoreCase(dto.getTargetSource())) {
+            TokyoGeocodedEntity job = tokyoRepo.findById(dto.getTargetPostId()).orElse(null);
+            if (job != null) { recruiter = job.getUser(); jobTitle = job.getTitle(); }
+        }
+
+        if (recruiter != null) {
+            notificationService.sendReportNotification(
+                recruiter, 
+                jobTitle, 
+                dto.getTargetPostId(), 
+                dto.getTargetSource()
+            );
+        }
     }
 
     // --- 4. 구인 신청(지원하기) 로직 ---
@@ -115,6 +148,31 @@ public class MapService {
 
         // 3. DB 저장
         applicationRepo.save(application);
+
+        // 🌟 공고 제목 및 작성자 조회 (알림용)
+        String jobTitle = "공고";
+        UserEntity recruiter = null;
+        if ("OSAKA".equalsIgnoreCase(dto.getTargetSource())) {
+            OsakaGeocodedEntity job = osakaRepo.findById(dto.getTargetPostId()).orElse(null);
+            if (job != null) {
+                jobTitle = job.getTitle();
+                recruiter = job.getUser();
+            }
+        } else if ("TOKYO".equalsIgnoreCase(dto.getTargetSource())) {
+            TokyoGeocodedEntity job = tokyoRepo.findById(dto.getTargetPostId()).orElse(null);
+            if (job != null) {
+                jobTitle = job.getTitle();
+                recruiter = job.getUser();
+            }
+        }
+
+        // 🌟 [알림 추가 1] 구직자 본인에게 '구인 신청 완료' 알림 발송
+        notificationService.sendAppCompletedNotification(seeker, jobTitle, dto.getTargetPostId(), dto.getTargetSource());
+
+        // 🌟 [알림 추가 2] 구인자(사장님)에게 '신규 지원자 발생' 알림 발송
+        if (recruiter != null) {
+            notificationService.sendNewApplicantNotification(recruiter, seeker.getNickname());
+        }
     }
 
     // --- 5. [NEW] 공고 삭제 로직 ---
@@ -158,6 +216,9 @@ public class MapService {
     // ==========================================
     // --- 4. [NEW] 검색 리스트 조회 (JobDetailDTO 반환) ---
     // ==========================================
+    // ==========================================
+    // --- 4. [NEW] 검색 리스트 조회 (JobDetailDTO 반환) ---
+    // ==========================================
     @Transactional(readOnly = true)
     public List<JobDetailDTO> searchJobsList(String keyword, String mainRegion, String subRegion, String lang) {
         
@@ -167,20 +228,28 @@ public class MapService {
         if ("tokyo".equalsIgnoreCase(mainRegion)) {
             // 위치 O: 도쿄는 wardCityJp, wardCityKr 컬럼을 확인
             tokyoRepo.findAll(JobSearchSpec.searchConditions(keyword, subRegion, "wardCityJp", "wardCityKr"))
+                    .stream() // 🌟 stream() 열고
+                    .filter(entity -> entity.getStatus() == null || "RECRUITING".equals(entity.getStatus().name())) // 🌟 필터 추가!
                     .forEach(entity -> results.add(new JobDetailDTO(entity, lang, "TOKYO")));
             
             // 위치 X: address 컬럼에서 확인
             tokyoNoRepo.findAll(JobSearchSpec.searchConditions(keyword, subRegion, "address"))
+                    .stream()
+                    .filter(entity -> entity.getStatus() == null || "RECRUITING".equals(entity.getStatus().name()))
                     .forEach(entity -> results.add(new JobDetailDTO(entity, lang, "TOKYO_NO")));
         }
         // 2. 오사카 검색
         else if ("osaka".equalsIgnoreCase(mainRegion)) {
             // 위치 O: 오사카는 wardJp, wardKr 컬럼을 확인
             osakaRepo.findAll(JobSearchSpec.searchConditions(keyword, subRegion, "wardJp", "wardKr"))
+                    .stream()
+                    .filter(entity -> entity.getStatus() == null || "RECRUITING".equals(entity.getStatus().name()))
                     .forEach(entity -> results.add(new JobDetailDTO(entity, lang, "OSAKA")));
             
             // 위치 X: address 컬럼에서 확인
             osakaNoRepo.findAll(JobSearchSpec.searchConditions(keyword, subRegion, "address"))
+                    .stream()
+                    .filter(entity -> entity.getStatus() == null || "RECRUITING".equals(entity.getStatus().name()))
                     .forEach(entity -> results.add(new JobDetailDTO(entity, lang, "OSAKA_NO")));
         }
         
