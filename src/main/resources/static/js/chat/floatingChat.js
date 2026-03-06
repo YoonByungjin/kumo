@@ -25,7 +25,12 @@ function openGlobalChatList() {
         return;
     }
 
-    chatFrame.src = "/chat/list";
+    // 🌟 1. 현재 부모 창(메인 화면)의 URL에서 lang 값을 빼옵니다 (없으면 kr)
+    const currentLang = new URLSearchParams(window.location.search).get('lang') || 'kr';
+
+    // 🌟 2. iframe 주소에 lang을 딱 붙여줍니다!
+    chatFrame.src = `/chat/list?lang=${currentLang}`;
+
     chatContainer.style.display = 'flex';
     chatContainer.classList.remove('minimized');
 }

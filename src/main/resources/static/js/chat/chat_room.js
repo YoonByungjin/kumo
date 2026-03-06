@@ -4,6 +4,9 @@ var myId = document.getElementById("myId").value;
 var msgArea = document.getElementById("msgArea");
 var lastChatDate = null;
 
+// 현재 HTML의 lang 속성(ko 또는 ja)을 가져와서 날짜 포맷에 사용합니다.
+const currentLang = document.documentElement.lang === 'ja' ? 'ja-JP' : 'ko-KR';
+
 connect();
 
 // ==========================================
@@ -12,9 +15,6 @@ connect();
 function connect() {
     var socket = new SockJS('/ws-stomp');
     stompClient = Stomp.over(socket);
-
-    // 콘솔창에 STOMP 기본 로그가 너무 많이 찍히는 걸 방지 (선택 사항)
-    // stompClient.debug = null; 
 
     stompClient.connect({}, function (frame) {
         console.log('✅ [LIVE] 웹소켓 방 입장 완료: ' + frame);
@@ -25,13 +25,12 @@ function connect() {
 
         scrollToBottom();
 
-        // ★ [추가] 방에 입장하고 0.3초 뒤에 "나 다 읽었어!" 신호 자동 발송
+        // 방에 입장하고 0.3초 뒤에 "나 다 읽었어!" 신호 자동 발송
         setTimeout(sendReadSignal, 300);
 
     }, function (error) {
-        // ... (기존 재연결 에러 로직)
-        // ★ 핵심: 터널 통과 등 인터넷 끊김 시 자동 재연결 시도!
-        console.error('❌ [LIVE] 웹소켓 연결 끊김! 3초 후 좀비처럼 재연결 시도...', error);
+        // 🌟 다국어 변수 적용
+        console.error('❌ [LIVE] ' + (window.CHAT_LANG ? window.CHAT_LANG.reconnecting : '웹소켓 연결 끊김! 재연결 시도...'), error);
         setTimeout(connect, 3000);
     });
 }
@@ -70,7 +69,6 @@ function sendMessage() {
 
         msgInput.value = '';
 
-        // ★ 오차 원천 차단: CSS 기본값이 아니라 '진짜 1줄 픽셀 높이'로 시멘트 고정!
         if (baseInputHeight === 0) baseInputHeight = msgInput.scrollHeight;
         msgInput.style.height = baseInputHeight + 'px';
         msgInput.style.overflowY = 'hidden';
@@ -82,20 +80,19 @@ function sendMessage() {
 // ★ 꼬인 부분 완벽하게 풀린 showMessage 완성본 ★
 // ==========================================
 function showMessage(message) {
-    // 1. [LIVE] 서버에서 "누가 다 읽었대!" 하는 신호가 오면?
     if (message.messageType === 'READ') {
         if (message.senderId != myId) {
-            // 상대방이 내 메시지를 읽었으므로 내 화면의 '1'을 싹 다 지웁니다!
             document.querySelectorAll('.unread-count').forEach(el => el.remove());
             console.log("👀 상대방이 메시지를 읽었습니다. '1' 삭제 완료!");
         }
-        return; // 이건 알림 신호니까, 말풍선을 그리지 않고 여기서 즉시 함수 종료!
+        return;
     }
 
-    // 2. 날짜 구분선 그리기 로직
+    // 🌟 [수정됨] 날짜 구분선 다국어 자동 포맷팅 (JS 내장 기능 사용)
     var today = new Date();
-    var days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
-    var currentDate = today.getFullYear() + "년 " + (today.getMonth() + 1) + "월 " + today.getDate() + "일 " + days[today.getDay()];
+    var dateOptions = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+    // 한국어면 "2026년 3월 6일 금요일", 일본어면 "2026年3月6日 金曜日" 형태로 자동 출력됩니다.
+    var currentDate = today.toLocaleDateString(currentLang, dateOptions);
 
     if (lastChatDate !== currentDate) {
         var dateDiv = document.createElement('div');
@@ -105,10 +102,12 @@ function showMessage(message) {
         lastChatDate = currentDate;
     }
 
-    // 3. 메시지 말풍선(div) 조립하기
     var isMe = (message.senderId == myId);
-    var div = document.createElement('div'); // ★ 여기서 div가 안전하게 만들어집니다!
+    var div = document.createElement('div');
     var timeString = message.createdAt;
+
+    // 🌟 [수정됨] '파일 열기' 텍스트 다국어 변수 사용
+    var openFileText = window.CHAT_LANG ? window.CHAT_LANG.openFile : '파일 열기';
 
     var finalContentHtml = "";
     if (message.messageType === 'IMAGE') {
@@ -134,7 +133,7 @@ function showMessage(message) {
             <div class="file-icon-box" style="color: ${iconColor};"><i class="fa-solid ${iconClass}"></i></div>
             <div class="file-info-box">
                 <div class="file-display-name">${fileName}</div>
-                <div class="file-display-sub">파일 열기</div>
+                <div class="file-display-sub">${openFileText}</div>
             </div>
         </div>`;
     } else {
@@ -149,11 +148,9 @@ function showMessage(message) {
         div.innerHTML = `<img src="/images/dog_profile.jpg" class="profile-img">${finalContentHtml}<span class="msg-time">${timeString}</span>`;
     }
 
-    // 4. 조립된 말풍선을 화면에 그리기
     msgArea.appendChild(div);
     scrollToBottom();
 
-    // 5. [LIVE] 내가 받은 진짜 메시지라면? "나 지금 보고 있으니까 바로 읽음 처리해!" 신호 발송
     if (message.senderId != myId && message.messageType !== 'READ') {
         if (typeof sendReadSignal === 'function') {
             sendReadSignal();
@@ -162,21 +159,17 @@ function showMessage(message) {
 }
 
 function autoResize(textarea) {
-    // ★ 최초 1줄일 때의 완벽한 픽셀 높이를 영구 저장해둡니다. (CSS와의 1~2px 오차 방지)
     if (baseInputHeight === 0) {
         baseInputHeight = textarea.scrollHeight;
     }
 
-    // 입력창이 비워졌을 때 (엔터 누른 직후 등)
     if (textarea.value.trim() === '') {
-        textarea.value = ''; // 찌꺼기 텍스트 파괴
-        textarea.style.height = baseInputHeight + 'px'; // 무조건 1줄 진짜 높이로 시멘트 고정
+        textarea.value = '';
+        textarea.style.height = baseInputHeight + 'px';
         textarea.style.overflowY = 'hidden';
         return;
     }
 
-    // ★ 스크롤 덜컹거림 방지 (핵심!)
-    // 높이를 재기 위해 잠깐 해제할 때 브라우저가 화면을 덜컹거리지 않도록 스크롤 위치를 꽉 잡아둡니다.
     let scrollY = window.scrollY;
 
     textarea.style.height = 'auto';
@@ -191,7 +184,6 @@ function autoResize(textarea) {
         textarea.style.overflowY = 'hidden';
     }
 
-    // 브라우저가 흔들리기 전에 스크롤 위치 즉시 원상복구
     window.scrollTo(0, scrollY);
 }
 
@@ -218,7 +210,8 @@ function uploadImage() {
             .then(response => response.text())
             .then(imageUrl => {
                 if (imageUrl.includes("실패")) {
-                    alert("사진 업로드 실패");
+                    // 🌟 다국어 변수 적용
+                    alert(window.CHAT_LANG ? window.CHAT_LANG.uploadFail : "사진 업로드 실패");
                     return;
                 }
                 var chatMessage = {
@@ -248,7 +241,8 @@ function uploadFile() {
             .then(response => response.text())
             .then(fileUrl => {
                 if (fileUrl.includes("실패")) {
-                    alert("파일 업로드 실패");
+                    // 🌟 다국어 변수 적용
+                    alert(window.CHAT_LANG ? window.CHAT_LANG.uploadFail : "파일 업로드 실패");
                     return;
                 }
                 var chatMessage = {
@@ -310,7 +304,7 @@ function sendReadSignal() {
         var readMessage = {
             roomId: roomId,
             senderId: myId,
-            messageType: 'READ' // 일반 TEXT가 아닌 READ 타입으로 발송!
+            messageType: 'READ'
         };
         stompClient.send("/pub/chat/read", {}, JSON.stringify(readMessage));
     }
@@ -388,7 +382,8 @@ async function translateAllMessages() {
         }
     } catch (err) {
         console.error("❌ 번역 중 에러 발생:", err);
-        alert("번역 처리 중 문제가 발생했습니다. 콘솔을 확인하세요.");
+        // 🌟 다국어 변수 (translateFail이 있으면 사용, 없으면 기본 메시지)
+        alert(window.CHAT_LANG && window.CHAT_LANG.translateFail ? window.CHAT_LANG.translateFail : "번역 처리 중 문제가 발생했습니다.");
     }
 }
 
@@ -437,17 +432,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 iconBox.style.color = '#95a5a6';
             }
         }
-    }); // <-- file-bubble forEach 끝나는 곳
+    });
 
     // ==========================================
-    // ★ 바로 이곳! 뒤로가기 버튼 누를 때 웹소켓 안전하게 끊기 ★
+    // ★ 뒤로가기 버튼 누를 때 웹소켓 안전하게 끊기 ★
     // ==========================================
     const backBtn = document.querySelector('.header-back-btn');
     if (backBtn) {
         backBtn.addEventListener('click', function () {
             if (typeof disconnect === 'function') {
-                disconnect(); // 웹소켓 탈출!
+                disconnect();
             }
         });
     }
-}); // <-- DOMContentLoaded 완전히 끝나는 곳
+});

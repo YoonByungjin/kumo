@@ -472,3 +472,34 @@ button {
     width: 16px;
     text-align: center;
 }
+
+/* 기본 상태: 검색창 숨김 (높이 0, 투명도 0) */
+.search-container {
+    height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: all 0.3s ease-in-out; /* 부드럽게 스르륵 열리는 효과 */
+    padding: 0 15px;
+}
+
+/* 돋보기를 눌러서 active 클래스가 붙었을 때: 검색창 나타남 */
+.search-container.active {
+    height: 50px; /* 검색창 높이에 맞게 조절 */
+    opacity: 1;
+    margin-bottom: 10px;
+}
+
+/* 검색 입력칸 예쁘게 꾸미기 (선택 사항) */
+#searchInput {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 20px;
+    outline: none;
+    font-size: 14px;
+}
+
+#searchInput:focus {
+    border-color: #7db4e6; /* KUMO 메인 하늘색 */
+    box-shadow: 0 0 5px rgba(125, 180, 230, 0.3);
+}
