@@ -215,6 +215,7 @@
         </div>
     </div>
 
+<th:block th:replace="~{fragments/floatingChat :: floatingChatFragment}"></th:block>
 
     <script th:inline="javascript">
         /* <![CDATA[ */
@@ -235,6 +236,7 @@
         /* ]]> */
 
         // 채팅 버튼 클릭 시 하늘색으로 토글 후 채팅방으로 이동하는 함수
+        // 채팅 버튼 클릭 시 하늘색으로 토글 후 '플로팅 채팅창'으로 띄우는 함수
         function toggleChatColor(btn, recruiterId, jobPostId, userId) {
             const svg = btn.querySelector('svg');
             const dots = svg.querySelectorAll('circle'); // 안쪽 꽉 찬 점 3개 찾기
@@ -245,9 +247,22 @@
             // 2. 안쪽 꽉 찬 점 3개 색상도 하늘색으로 같이 변경!
             dots.forEach(dot => dot.setAttribute('fill', '#8bbbe5'));
 
-            // 0.2초 뒤 채팅방으로 슝
+            // 🌟 3. 페이지 이동 대신 플로팅 채팅창을 띄웁니다!
             setTimeout(() => {
-                location.href = `/chat/create?recruiterId=${recruiterId}&jobPostId=${jobPostId}&userId=${userId}`;
+                const chatContainer = document.getElementById('floatingChatContainer');
+                const chatFrame = document.getElementById('floatingChatFrame');
+
+                if (!chatContainer || !chatFrame) {
+                    alert("채팅 모듈을 불러올 수 없습니다. 화면을 새로고침해주세요.");
+                    return;
+                }
+
+                // iframe에 새 채팅방 생성 백엔드 주소 할당
+                chatFrame.src = `/chat/create?recruiterId=${recruiterId}&jobPostId=${jobPostId}&userId=${userId}`;
+
+                // 숨겨져 있던 채팅창을 화면에 표시
+                chatContainer.style.display = 'flex';
+                chatContainer.classList.remove('minimized');
             }, 200);
         }
     </script>
