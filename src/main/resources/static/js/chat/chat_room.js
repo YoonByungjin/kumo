@@ -169,12 +169,15 @@ function showMessage(message) {
         finalContentHtml = `<div class="msg-bubble">${message.content}</div>`;
     }
 
+    // chat_room.js 내부 showMessage 함수 하단부
     if (isMe) {
         div.className = "msg-row me";
         div.innerHTML = `<span class="msg-time">${timeString}</span><span class="unread-count">1</span>${finalContentHtml}`;
     } else {
         div.className = "msg-row other";
-        div.innerHTML = `<img src="/images/dog_profile.jpg" class="profile-img">${finalContentHtml}<span class="msg-time">${timeString}</span>`;
+        // 🌟 하드코딩된 dog_profile.jpg 대신 hidden input에서 가져온 주소 사용
+        var oppImgUrl = document.getElementById("opponentImg").value;
+        div.innerHTML = `<img src="${oppImgUrl}" class="profile-img" style="object-fit: cover;">${finalContentHtml}<span class="msg-time">${timeString}</span>`;
     }
 
     msgArea.appendChild(div);

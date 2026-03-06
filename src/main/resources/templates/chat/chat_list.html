@@ -56,7 +56,8 @@
         <div th:each="room : ${chatRooms}" th:data-unread="${room.hasUnread}" class="chat-item"
              th:onclick="|enterRoom(${room.roomId})|">
             <div class="avatar-wrapper">
-                <img th:src="@{/images/dog_profile.jpg}" class="avatar-img" alt="프로필">
+                <img th:src="${room.opponentProfileImg ?: '/images/common/default_profile.png'}"
+                     class="avatar-img" alt="프로필" style="object-fit: cover;">
             </div>
 
             <div class="chat-content">

@@ -81,8 +81,18 @@ public class ChatController {
         ChatRoomEntity room = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
 
+        // ChatController.java 내부 enterRoom 메서드
         UserEntity opponent = room.getSeeker().getUserId().equals(userId) ? room.getRecruiter() : room.getSeeker();
-        model.addAttribute("roomName", opponent.getNickname());
+
+        // 🌟 엔티티 구조에 맞춘 안전한 경로 추출
+        String oppImgUrl = "/images/common/default_profile.png"; // 기본값
+
+        // profileImage가 null이 아니고, 그 안의 fileUrl도 있을 때만 교체
+        if (opponent.getProfileImage() != null && opponent.getProfileImage().getFileUrl() != null) {
+            oppImgUrl = opponent.getProfileImage().getFileUrl();
+        }
+
+        model.addAttribute("opponentProfileImg", oppImgUrl);
 
         // =========================================================
         // 🌟 수정된 부분: 대화 기록 불러오기 & 모델에 담기 (읽음 처리도 자동 수행됨!)

@@ -18,6 +18,13 @@
 
 <input type="hidden" id="roomId" th:value="${roomId}">
 <input type="hidden" id="myId" th:value="${userId}">
+<input type="hidden" id="opponentImg" th:value="${opponentProfileImg}"> <div class="store-profile-row">
+    <img th:src="${opponentProfileImg}" class="header-store-img" style="object-fit: cover;"> <span class="header-store-name" th:text="${roomName}">상대방 이름</span>
+</div>
+
+<div th:if="${strSenderId != strUserId}" class="msg-row other">
+    <img th:src="${opponentProfileImg}" class="profile-img" style="object-fit: cover;"> ...
+</div>
 
 <script th:inline="javascript">
     window.CHAT_LANG = {
@@ -42,7 +49,7 @@
 
         <div class="header-center">
             <div class="store-profile-row">
-                <img th:src="@{/images/dog_profile.jpg}" class="header-store-img">
+                <img th:src="${opponentProfileImg}" class="header-store-img" style="object-fit: cover;">
                 <span class="header-store-name" th:text="${roomName}">상대방 이름</span>
             </div>
 
@@ -64,14 +71,12 @@
                 </div>
             </th:block>
 
-            <th:block th:with="strSenderId=${#strings.toString(msg.senderId)}, strUserId=${#strings.toString(userId)}">
+            <div th:if="${strSenderId != strUserId}" class="msg-row other">
+                <img th:src="${opponentProfileImg}" class="profile-img" style="object-fit: cover;">
 
-                <div th:if="${strSenderId != strUserId}" class="msg-row other">
-                    <img th:src="@{/images/dog_profile.jpg}" class="profile-img">
-
-                    <th:block th:if="${msg.messageType == 'TEXT' or msg.messageType == 'TALK'}">
-                        <div class="msg-bubble" th:text="${msg.content}">내용</div>
-                    </th:block>
+                <th:block th:if="${msg.messageType == 'TEXT' or msg.messageType == 'TALK'}">
+                    <div class="msg-bubble" th:text="${msg.content}">내용</div>
+                </th:block>
 
                     <th:block th:if="${msg.messageType == 'IMAGE'}">
                         <img th:src="${msg.content}" class="chat-image"
