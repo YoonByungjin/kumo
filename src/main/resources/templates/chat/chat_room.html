@@ -132,7 +132,7 @@
              onclick="document.getElementById('fileInput').click()">
         <textarea class="input-field" id="msgInput" th:placeholder="#{chat.room.input.placeholder}" rows="1" onkeydown="handleEnter(event)"
                   oninput="autoResize(this)"></textarea>
-        <button class="btn-send" onclick="sendMessage()" th:text="#{chat.room.btn.send}">전송</button>
+        <button class="btn-send" onclick="sendMessage()"></button>
     </div>
 
     <dialog id="imageModal" class="std-dialog-clear">
