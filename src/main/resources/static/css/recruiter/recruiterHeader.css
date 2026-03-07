@@ -268,13 +268,13 @@
 
 /* 알림 바디 */
 .notify-body {
-  max-height: 320px;
+  max-height: 350px;
   overflow-y: auto;
   background: #fff;
-  transition: max-height 0.4s ease-in-out;
+  transition: max-height 0.3s ease;
 }
 .notify-body.expanded {
-  max-height: 600px !important;
+  max-height: 800px !important;
 }
 
 /* 알림 없음 */
@@ -371,7 +371,8 @@
   color: #666;
   font-size: 13px;
   cursor: pointer;
-  gap: 5px;
+  gap: 8px;
+  transition: background 0.2s, color 0.2s;
 }
 .notify-footer:hover {
   background-color: #f5f7fa;
