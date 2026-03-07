@@ -2,22 +2,31 @@
 
 # ☁️ KUMO : Location-Based Job Platform
 
-**지도 기반 한/일 글로벌 구인구직 매칭 플랫폼**
+**지도 기반 한/일 글로벌 구인구직 매칭 플랫폼** <br>
+**地図基盤の韓/日グローバル求人求職マッチングプラットフォーム**
 
 [![Java](https://img.shields.io/badge/Java-21-007396?style=flat-square&logo=java&logoColor=white)]()
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-6DB33F?style=flat-square&logo=springboot&logoColor=white)]()
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=flat-square&logo=mysql&logoColor=white)]()
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=flat-square&logo=javascript&logoColor=black)]()
 
+<br>
+
+**[ 🇰🇷 한국어 (Korean) ](#-korean-version)** | **[ 🇯🇵 日本語 (Japanese) ](#-japanese-version)**
+
 </div>
 
+---
+
 <br>
+
+# 🇰🇷 Korean Version
 
 ## 📝 프로젝트 소개
 **KUMO**는 일본(도쿄, 오사카) 지역의 구인구직 정보를 지도 위에서 한눈에 확인하고, 내 주변의 일자리를 손쉽게 탐색할 수 있는 **지도 기반 매칭 플랫폼**입니다.
 한국어와 일본어를 동시 지원하며, 구직자와 구인자 간의 실시간 1:1 채팅 기능을 제공하여 빠른 소통을 돕습니다.
 
-> 💡 **데모 영상 (준비 중)** > *(여기에 나중에 실제 지도화면이나 채팅 작동 GIF를 넣으시면 아주 멋집니다!)*
+> 💡 **데모 영상 (준비 중)**
 
 <br>
 
@@ -39,17 +48,6 @@
 
 <br>
 
-## 🛠 기술 스택 (Tech Stack)
-
-| 구분 | 기술 스택 |
-| :--- | :--- |
-| **Frontend** | HTML5, CSS3(Variables), JavaScript (Vanilla + jQuery), Thymeleaf |
-| **Backend** | Java 17, Spring Boot, Spring Security, Spring Data JPA |
-| **Database** | MySQL (Geocoding & Spatial Data), Hibernate |
-| **API & Tools** | Google Maps API (MarkerClusterer), WebSocket(STOMP) |
-
-<br>
-
 ## 📌 릴리즈 로드맵 (TODO List)
 
 - [x] 🗺️ **지도 기본 기능 구현** (Google Maps 연동 및 마커 클러스터링)
@@ -65,15 +63,67 @@
 <br>
 
 ## 🤝 협업 규칙 (Contributing)
-
 원활한 팀 프로젝트 진행을 위해 아래 사항을 꼭 지켜주세요! 😊
-
 1. **브랜치(Branch) 생성:** 작업 시 반드시 `feature/기능명` 형태로 브랜치를 파서 작업해 주세요.
-2. **구조 변경 사전 공유:** 데이터베이스 테이블 구조(Entity)를 변경하거나, 핵심 비즈니스 로직 및 공통 컴포넌트(Header/Footer/BaseEntity)를 수정·포크 하실 때는 **반드시 팀원들에게 먼저 공유**해 주세요! 🚨
-3. **커밋 메시지 규칙:** - `[FEAT]` : 새로운 기능 추가
-    - `[FIX]` : 버그 및 에러 수정
-    - `[REFACTOR]` : 코드 리팩토링
-    - `[CHORE]` : 환경설정, 빌드 업무, 패키지 매니저 설정 등
+2. **구조 변경 사전 공유:** 데이터베이스 테이블 구조(Entity)를 변경하거나, 핵심 로직 및 공통 컴포넌트(Header/Footer/BaseEntity)를 수정·포크 하실 때는 **반드시 팀원들에게 먼저 공유**해 주세요! 🚨
+3. **커밋 메시지 규칙:** - `[FEAT]` : 새로운 기능 추가 / `[FIX]` : 버그 및 에러 수정 / `[REFACTOR]` : 코드 리팩토링 / `[CHORE]` : 환경설정 등
+
+<br>
+<br>
+
+---
+
+<br>
+
+# 🇯🇵 Japanese Version
+
+## 📝 プロジェクト紹介
+**KUMO**は、日本（東京・大阪）エリアの求人情報を地図上で一目で確認し、現在地周辺の求人を簡単に検索できる**地図基盤のマッチングプラットフォーム**です。
+韓国語と日本語の同時サポートに加え、求職者と求人者間のリアルタイム1:1チャット機能を提供し、スムーズなコミュニケーションを支援します。
+
+> 💡 **デモ動画（準備中）**
+
+<br>
+
+## ✨ 主要機能 (Key Features)
+
+### 🗺️ スマートマップ検索
+- **Google Maps連動＆クラスタリング:** 多数の求人情報を地図上で見やすくグループ化してレンダリング
+- **GPS基盤の周辺検索:** 現在地を基準に半径内の求人をフィルタリング（東京・大阪エリア対応）
+
+### 💼 カスタマイズ求人管理
+- **多言語サポート:** ユーザーの設定に応じて韓国語(KR) / 日本語(JP)の求人内容およびUIを自動切り替え
+- **ボトムシート＆フローティングカード:** 地図を移動しながら直感的に求人の要約情報を確認
+- **最近見た求人＆お気に入り(Scrap):** 気になる求人をローカル/データベースに保存して一覧表示
+
+### 💬 リアルタイムコミュニケーション＆管理
+- **1:1 リアルタイムチャット (STOMP/WebSocket):** 求人ごとに求職者・求人者間のチャットルームを即時生成し対話
+- **管理者クローリングデータの分離:** 独自登録の求人とシステム(Admin)収集求人を分離し、体系的にデータ管理
+- **悪質求人の通報機能:** スパムや虚偽の求人をブロックするためのモーダルおよび通報受付システム
+
+<br>
+
+## 📌 リリースロードマップ (TODO List)
+
+- [x] 🗺️ **地図の基本機能実装** (Google Maps連動およびマーカークラスタリング)
+- [x] 📱 **サイドバー / ボトムシートUI実装** (レスポンシブ対応)
+- [x] 📍 **周辺の求人検索** (GPS基盤の半径フィルタリング完了)
+- [x] 🔍 **検索およびフィルタリング** (地域・キーワード連動検索実装完了)
+- [x] ⭐ **最近見た求人およびお気に入り(Scrap)機能実装**
+- [x] 💬 **リアルタイム 1:1 チャット機能導入**
+- [x] 🌐 **韓国語/日本語の多言語(i18n)システム適用**
+- [x] 🔔 プッシュ通知システムおよび未読メッセージバッジの高度化
+- [x] 🛠️ 統合管理者(Admin)ダッシュボード構築
+
+<br>
+
+## 🤝 協業ルール (Contributing)
+円滑なチームプロジェクト進行のため、以下の事項を必ず守ってください！ 😊
+1. **ブランチ(Branch)の作成:** 作業時は必ず `feature/機能名` の形式でブランチを作成してください。
+2. **構造変更の事前共有:** データベースのテーブル構造(Entity)の変更や、コアロジック・共通コンポーネント(Header/Footer/BaseEntity)の修正・フォークを行う際は、**必ずチームメンバーに事前に共有**してください！ 🚨
+3. **コミットメッセージのルール:** - `[FEAT]` : 新機能の追加 / `[FIX]` : バグ修正 / `[REFACTOR]` : リファクタリング / `[CHORE]` : 環境設定など
+
+<br>
 
 ---
 *Copyright © 2026 KUMO Project Team. All rights reserved.*
