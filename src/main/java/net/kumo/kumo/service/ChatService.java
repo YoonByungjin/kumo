@@ -1,5 +1,15 @@
 package net.kumo.kumo.service;
 
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import lombok.RequiredArgsConstructor;
 import net.kumo.kumo.domain.dto.ChatMessageDTO;
 import net.kumo.kumo.domain.dto.ChatRoomListDTO;
@@ -10,13 +20,6 @@ import net.kumo.kumo.domain.entity.UserEntity;
 import net.kumo.kumo.repository.ChatMessageRepository;
 import net.kumo.kumo.repository.ChatRoomRepository;
 import net.kumo.kumo.repository.UserRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * 채팅과 관련된 핵심 비즈니스 로직을 처리하는 서비스 클래스입니다.
@@ -30,13 +33,14 @@ public class ChatService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final UserRepository userRepository;
+    private final MessageSource messageSource;
 
     /**
      * 구직자와 구인자 간의 채팅방을 생성하거나 이미 존재하는 방을 반환합니다.
      * 동일한 공고(출처 포함)에 대해 이미 채팅방이 있다면 해당 방을 반환합니다.
      *
-     * @param seekerId 구직자(Seeker)의 사용자 ID
-     * @param recruiterId 구인자(Recruiter)의 사용자 ID
+     * @param seekerId     구직자(Seeker)의 사용자 ID
+     * @param recruiterId  구인자(Recruiter)의 사용자 ID
      * @param targetPostId 연관된 공고 ID
      * @param targetSource 공고의 출처 (예: OSAKA, TOKYO 등)
      * @return 생성되거나 조회된 ChatRoomEntity 객체
@@ -112,7 +116,7 @@ public class ChatService {
      *
      * @param roomId 채팅방 ID
      * @param userId 메시지를 읽는 사용자의 ID
-     * @param lang 사용자의 현재 언어 설정 (예: "ko", "ja")
+     * @param lang   사용자의 현재 언어 설정 (예: "ko", "ja")
      * @return 언어 포맷이 적용된 과거 메시지 DTO 리스트
      */
     public List<ChatMessageDTO> getMessageHistory(Long roomId, Long userId, String lang) {
@@ -151,8 +155,12 @@ public class ChatService {
                     .roomId(room.getId())
                     .opponentNickname(opponent.getNickname())
                     .opponentProfileImg(profileImg)
-                    .lastMessage(lastMsg != null ? lastMsg.getContent() : "대화 내용이 없습니다.")
-                    .lastTime(lastMsg != null ? lastMsg.getCreatedAt().format(DateTimeFormatter.ofPattern("HH:mm")) : "")
+                    .lastMessage(lastMsg != null ? lastMsg.getContent()
+                            : messageSource.getMessage("chat.last.message.empty", null,
+                                    LocaleContextHolder.getLocale()))
+
+                    .lastTime(
+                            lastMsg != null ? lastMsg.getCreatedAt().format(DateTimeFormatter.ofPattern("HH:mm")) : "")
                     .hasUnread(hasUnreadFlag)
                     .build();
         }).collect(Collectors.toList());
@@ -161,7 +169,7 @@ public class ChatService {
     /**
      * 웹소켓을 통한 실시간 메시지 읽음 신호를 처리합니다.
      *
-     * @param roomId 채팅방 ID
+     * @param roomId   채팅방 ID
      * @param readerId 메시지를 읽은 사용자의 ID
      */
     public void processLiveReadSignal(Long roomId, Long readerId) {
@@ -184,7 +192,7 @@ public class ChatService {
      * 전달받은 언어 파라미터에 따라 채팅창 구분선에 쓰일 날짜 포맷을 다국어로 적용합니다.
      *
      * @param entity 변환할 메시지 엔티티
-     * @param lang 적용할 언어 코드 (예: "ja", "kr")
+     * @param lang   적용할 언어 코드 (예: "ja", "kr")
      * @return 변환된 DTO 객체
      */
     private ChatMessageDTO convertToDTO(ChatMessageEntity entity, String lang) {
@@ -194,11 +202,13 @@ public class ChatService {
         return ChatMessageDTO.builder()
                 .roomId(entity.getRoom().getId())
                 .senderId(entity.getSender() != null ? entity.getSender().getUserId() : null)
-                .senderNickname(entity.getSender() != null ? entity.getSender().getNickname() : "알 수 없음")
+                .senderNickname(entity.getSender() != null ? entity.getSender().getNickname()
+                        : messageSource.getMessage("chat.sender.unknown", null, LocaleContextHolder.getLocale()))
                 .content(entity.getContent())
                 .messageType(entity.getMessageType().name())
                 .createdAt(entity.getCreatedAt().format(DateTimeFormatter.ofPattern("HH:mm")))
-                .createdDate(entity.getCreatedAt().format(java.time.format.DateTimeFormatter.ofPattern(datePattern, locale)))
+                .createdDate(
+                        entity.getCreatedAt().format(java.time.format.DateTimeFormatter.ofPattern(datePattern, locale)))
                 .isRead(entity.getIsRead())
                 .build();
     }
