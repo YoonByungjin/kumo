@@ -588,3 +588,48 @@ body.dark-mode .option-item { color: #e3e5e8 !important; }
 body.dark-mode .option-item:hover { background-color: #37393d !important; }
 body.dark-mode .option-item.delete:hover { background-color: #3a2020 !important; color: #ff6b6b !important;}
 
+/* ============================================================
+   ✨ KUMO 시그니처 커스텀 스크롤바 (전역 적용)
+   ============================================================ */
+
+/* 1. 스크롤바 전체 너비 설정 (아주 얇게) */
+::-webkit-scrollbar {
+    width: 8px;
+    /* 세로 스크롤바 두께 */
+    height: 8px;
+    /* 가로 스크롤바 두께 */
+}
+
+/* 2. 스크롤바 트랙 (바닥) */
+::-webkit-scrollbar-track {
+    background: transparent;
+    /* 배경을 투명하게 해서 평소엔 안 보이게 */
+}
+
+/* 3. 스크롤바 핸들 (움직이는 막대) */
+::-webkit-scrollbar-thumb {
+    background-color: rgba(125, 180, 230, 0.3);
+    /* 쿠모 하늘색에 투명도 30% */
+    border-radius: 10px;
+    /* 조약돌처럼 둥글게 */
+    border: 2px solid transparent;
+    /* 트랙과 약간 띄워진 느낌 */
+    background-clip: padding-box;
+}
+
+/* 4. 마우스를 올렸을 때만 더 선명하게 */
+::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(125, 180, 230, 0.7);
+    /* 좀 더 진한 하늘색으로 변신 */
+}
+
+/* 🌙 다크모드 대응 */
+body.dark-mode ::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.1);
+    /* 다크모드에선 은은한 화이트 */
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(125, 180, 230, 0.5);
+    /* 다크모드 호버 시 하늘색 광채 */
+}
