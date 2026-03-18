@@ -1,8 +1,49 @@
 /**
+ * job_detail.js
  * 공고 상세 페이지에서 사용되는 프론트엔드 비즈니스 로직을 담당합니다.
  * HTML에서 선언된 'isUserLoggedIn'과 'MESSAGES' 객체를 전역으로 활용하며,
  * 다국어(언어) 감지 시 외부 함수의 로드 실패를 대비한 안전장치(Fallback)가 적용되어 있습니다.
  */
+
+/**
+ * 1:1 채팅하기 버튼 클릭 시 아이콘을 하늘색으로 토글한 후,
+ * 채팅 플로팅 창(iframe)을 호출하여 채팅방 생성을 요청합니다.
+ *
+ * @param {HTMLElement} btn 클릭된 1:1 채팅하기 버튼 요소
+ */
+function handleChatClick(btn) {
+    const hasUser = btn.getAttribute('data-has-user') === 'true';
+
+    if (!hasUser) {
+        alert(currentLang === 'ja' ? '作成者情報がない求人のため、チャットは利用できません。' : '작성자 정보가 없는 공고라 채팅이 불가능합니다.');
+        return;
+    }
+
+    const recruiterId = btn.getAttribute('data-recruiter-id');
+    const jobPostId = btn.getAttribute('data-job-id');
+    const userId = btn.getAttribute('data-user-id');
+    const jobSource = btn.getAttribute('data-source');
+
+    const svg = btn.querySelector('svg');
+    const dots = svg.querySelectorAll('circle');
+    svg.setAttribute('stroke', '#8bbbe5');
+    dots.forEach(dot => dot.setAttribute('fill', '#8bbbe5'));
+
+    setTimeout(() => {
+        const chatContainer = document.getElementById('floatingChatContainer');
+        const chatFrame = document.getElementById('floatingChatFrame');
+
+        if (!chatContainer || !chatFrame) {
+            alert(currentLang === 'ja' ? 'チャットモジュールを読み込めません。画面を更新してください。' : "채팅 모듈을 불러올 수 없습니다. 화면을 새로고침해주세요.");
+            return;
+        }
+
+        chatFrame.src = `/chat/create?recruiterId=${recruiterId}&jobPostId=${jobPostId}&userId=${userId}&jobSource=${jobSource}&lang=${currentLang}`;
+
+        chatContainer.style.display = 'flex';
+        chatContainer.classList.remove('minimized');
+    }, 200);
+}
 
 /**
  * 신고 모달창을 엽니다.
@@ -82,7 +123,7 @@ function submitReport() {
 /**
  * 구직자가 공고에 구인 신청(지원)을 수행합니다.
  * 언어 설정에 따른 다국어 알림을 지원하며, 중복 지원 및 서버 에러를 처리합니다.
- * * @param {HTMLElement} btnElement 클릭된 지원하기 버튼 요소
+ * @param {HTMLElement} btnElement 클릭된 지원하기 버튼 요소
  */
 function applyForJob(btnElement) {
     if (!isUserLoggedIn) {
@@ -145,7 +186,7 @@ function applyForJob(btnElement) {
 
 /**
  * 공고를 스크랩(즐겨찾기) 하거나 취소합니다.
- * * @param {HTMLElement} btnElement 클릭된 스크랩 버튼 요소
+ * @param {HTMLElement} btnElement 클릭된 스크랩 버튼 요소
  */
 function toggleScrap(btnElement) {
     if (!isUserLoggedIn) {
@@ -189,7 +230,7 @@ function toggleScrap(btnElement) {
 
 /**
  * 구인자가 본인이 작성한 공고의 수정 페이지로 이동합니다.
- * * @param {HTMLElement} btnElement 클릭된 수정 버튼 요소
+ * @param {HTMLElement} btnElement 클릭된 수정 버튼 요소
  */
 function editJob(btnElement) {
     const postId = btnElement.getAttribute('data-id');
@@ -207,7 +248,7 @@ function editJob(btnElement) {
 /**
  * 구인자가 본인이 작성한 공고를 삭제합니다.
  * 다국어 지원 및 외부 JS 로드 실패에 대한 안전장치가 포함되어 있습니다.
- * * @param {HTMLElement} btnElement 클릭된 삭제 버튼 요소
+ * @param {HTMLElement} btnElement 클릭된 삭제 버튼 요소
  */
 function deleteJob(btnElement) {
     const postId = btnElement.getAttribute('data-id');
