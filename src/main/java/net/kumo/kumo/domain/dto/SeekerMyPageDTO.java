@@ -36,7 +36,7 @@ public class SeekerMyPageDTO {
 				.id(userEntity.getUserId())
 				.email(userEntity.getEmail())
 				.contact(userEntity.getContact())
-				.name(userEntity.getNameKanjiSei()+ " " +userEntity.getNameKanjiSei())
+				.name(userEntity.getNameKanjiSei()+ " " +userEntity.getNameKanjiMei())
 				.nickname(userEntity.getNickname())
 				.fileUrl(userEntity.getProfileImage() != null ? userEntity.getProfileImage().getFileUrl() : null) // 없으면 null
 				.address(userEntity.getAddressMain() + " " + userEntity.getAddressDetail())
