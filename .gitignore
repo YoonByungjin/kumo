@@ -38,9 +38,17 @@ out/
 
 ### .env ###
 .env
+### .md ###
+*.md
 
 ### .gemini.md ###
 gemini.md
 
 #.DS_Store
 .DS_Store
+
+### Node/Project artifacts ###
+node_modules/
+chat_uploads/
+my_commits.txt
+my_commits_detail.txt
