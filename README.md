@@ -106,8 +106,9 @@
 
 | 機能 | 実装詳細 |
 |------|----------|
-| Polling方式リアルタイム通知 | フロントから定期的に`/api/notifications/unread-count`を呼び出し、未読数をヘッダーのベルアイコンバッジに表示 |
-| 通知生成イベント | ① 求人応募完了 → 求職者に通知、② 新規応募者発生 → 求人者に通知、③ スカウト提案 → 求職者に通知 |
+| イベント駆動型通知システム | ビジネスロジック実行時にサーバーサイドで通知データを生成しDBに永続化。ページロード時に`/api/notifications/unread-count`を呼び出しヘッダーのベルアイコンバッジに未読数を表示。ユーザーがアイコンクリック時に`/api/notifications`で通知一覧を取得。各通知にターゲットURLを保存しクリック時に該当ページへ直接遷移 |
+| 求職者向け通知イベント | ① 求人応募完了(`APP_COMPLETED`)、② 書類合格(`APP_PASSED`)、③ 書類不合格(`APP_FAILED`)、④ スカウト提案(`SCOUT_OFFER`)、⑤ 応募中の求人締切(`JOB_CLOSED`) |
+| 求人者向け通知イベント | ① 新規応募者受付(`NEW_APPLICANT`)、② 投稿通報受付(`REPORT_RESULT`) |
 | 多言語動的変換 | DBには通知タイプコード + ターゲットURLのみ保存。照会時に`MessageSource`を通じてユーザーのLocaleに合わせた文言をリアルタイム生成して返却 |
 | 既読処理 | PATCH `/api/notifications/read-all`で`is_read`状態を一括変更 |
 
@@ -344,8 +345,9 @@ src/main/resources/
 
 | 기능 | 구현 상세 |
 |------|-----------|
-| Polling 방식 실시간 알림 | 프론트에서 주기적으로 `/api/notifications/unread-count`를 호출하여 미읽음 개수를 헤더 벨 아이콘 배지에 표시 |
-| 알림 생성 이벤트 | ① 구인 신청 완료 → 구직자에게 알림, ② 신규 지원자 발생 → 구인자에게 알림, ③ 스카우트 제의 → 구직자에게 알림 |
+| 이벤트 기반 알림 시스템 | 비즈니스 로직 실행 시 서버 사이드에서 알림 데이터를 생성하여 DB에 저장. 페이지 로드 시 `/api/notifications/unread-count`를 호출하여 헤더 벨 아이콘 배지에 미읽음 수 표시. 사용자가 아이콘 클릭 시 `/api/notifications`로 알림 목록 조회. 각 알림에 타겟 URL을 저장하여 클릭 시 해당 페이지로 직접 이동 |
+| 구직자 알림 이벤트 | ① 구인 신청 완료(`APP_COMPLETED`), ② 서류 합격(`APP_PASSED`), ③ 서류 불합격(`APP_FAILED`), ④ 스카우트 제의(`SCOUT_OFFER`), ⑤ 지원 중인 공고 마감(`JOB_CLOSED`) |
+| 구인자 알림 이벤트 | ① 신규 지원자 접수(`NEW_APPLICANT`), ② 게시글 신고 접수(`REPORT_RESULT`) |
 | 다국어 동적 변환 | DB에는 알림 타입 코드 + 타겟 URL만 저장. 조회 시 `MessageSource`를 통해 사용자 Locale에 맞는 문구를 실시간 생성하여 반환 |
 | 읽음 처리 | PATCH `/api/notifications/read-all`로 `is_read` 상태 일괄 변경 |
 

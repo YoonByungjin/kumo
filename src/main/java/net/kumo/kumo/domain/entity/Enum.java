@@ -61,13 +61,7 @@ public class Enum {
 
         /** 신규 지원자 접수 알림 (구인자용) */
         NEW_APPLICANT,
-        /** 금일 예정된 일정 알림 (구인자용) */
-        TODAY_SCHEDULE,
-
-        /** 신규 채팅 수신 알림 (공통) */
-        NEW_CHAT,
-        /** 시스템 전역 공지 알림 (공통) */
-        NOTICE,
+		
         /** 접수된 신고 처리 결과 알림 (공통) */
         REPORT_RESULT
     }
