@@ -240,12 +240,18 @@ src/main/resources/
 ├── messages.properties            # 한국어 메시지
 ├── messages_ja.properties         # 일본어 메시지
 ├── templates/
-│   ├── NonLoginView/              # 비로그인 화면
-│   ├── SeekerView/                # 구직자 화면
-│   ├── mainView/recruiterView/    # 구인자 화면
-│   ├── adminView/                 # 관리자 화면
-│   ├── mapView/                   # 지도 · 검색 화면
-│   └── chat/                      # 채팅 화면
+├── adminView/                 # 관리자 화면
+├── AuthenticatedFragments/    # 인증 후 공통 프래그먼트
+├── chat/                      # 채팅 화면
+├── errorView/                 # 에러 페이지
+├── fragments/                 # 채팅띄우기 화면
+├── mainView/                  # 지도 메인 화면
+├── mapView/                   # 지도 · 검색 화면
+├── NonLoginFragments/         # 비로그인 공통 프래그먼트
+├── NonLoginView/              # 비로그인 화면
+├── recruiterView/             # 구인자 화면
+├── SeekerView/                # 구직자 화면
+└── home.html                  # 메인 홈
 └── static/
     ├── css/
     ├── js/
