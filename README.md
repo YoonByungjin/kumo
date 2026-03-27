@@ -264,15 +264,13 @@ src/main/resources/
 
 ## 📸 스크린샷
 
-<!-- 스크린샷을 docs/images/ 에 넣고 경로를 수정하세요 -->
+| 홈 화면 |        로그인 (reCAPTCHA)         |
+|:---:|:------------------------------:|
+| ![홈](docs/images/home.png) | ![PW찾기](docs/images/email.png) |
 
-| 홈 화면 | 지도 검색 |
-|:---:|:---:|
-| ![홈](docs/images/home.png) | ![지도](docs/images/map.png) |
-
-| 로그인 | 이력서 관리 |
-|:---:|:---:|
-| ![로그인](docs/images/login.png) | ![이력서](docs/images/resume.png) |
+| 알림 기능 |             지원 내역 확인              |
+|:---:|:---------------------------------:|
+| ![알림](docs/images/notification.png) | ![이력서 관리](docs/images/resume.png) |
 
 <br>
 
