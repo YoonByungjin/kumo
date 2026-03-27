@@ -190,7 +190,7 @@
 ## 🗄️ ERD 그래프
 
 <!-- ERD 이미지를 docs/images/ 에 넣고 경로를 수정하세요 -->
-![ER図](docs/images/erd.png)
+![ER図](docs/images/ERD.png)
 
 <br>
 
