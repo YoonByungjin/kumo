@@ -152,7 +152,7 @@
 
 | 段階 | 実装詳細 |
 |------|----------|
-| 1. クローリング | Seleniumでダウムカフェ（東遊モ/大遊モ）求人掲示板から新規投稿を収集。既存DB最新投稿番号（`datanum`）基準で新規のみクローリング |
+| 1. クローリング | SeleniumでDaumカフェ（ドンユモ / オユモ）求人掲示板から新規投稿を収集。既存DB最新投稿番号（`datanum`）基準で新規のみクローリング |
 | 2. AIパーシング | Gemini API（`gemini-2.5-flash`）で非定型投稿本文を定型JSON（会社名、住所、連絡先、職務、給与等）に自動抽出。429エラー防御リトライロジック含む |
 | 3. 欠損値処理 | 会社名・住所のないデータ削除、3段階の重複投稿除去（タイトル → 会社名+住所+連絡先 → 会社名+住所） |
 | 4. ジオコーディング | Google Maps Geocoding APIで住所 → 緯度/経度変換。座標エラー行を自動削除 |
@@ -187,9 +187,80 @@
 
 ## 📊 ERD
 
+### コアテーブル構造
+
 ![ERD](docs/images/ERD1.png)
 
 <br>
+
+
+## 📁 プロジェクト構造
+
+<details>
+<summary>クリックして全体構造を表示</summary>
+
+```
+src/main/java/net/kumo/kumo/
+├── KumoApplication.java
+├── config/
+│   ├── LocaleConfig.java          # 多言語(i18n)Cookieベース設定
+│   ├── WebMvcConfig.java          # MVC設定
+│   └── WebSocketConfig.java       # WebSocket(STOMP)設定
+├── controller/                    # 16個のコントローラー
+│   ├── HomeController.java
+│   ├── LoginController.java
+│   ├── SeekerController.java
+│   ├── RecruiterController.java
+│   ├── AdminController.java
+│   ├── MapController.java
+│   ├── NotificationController.java
+│   ├── ChatController.java
+│   └── ...
+├── domain/
+│   ├── dto/                       # 30+ DTO
+│   ├── entity/                    # 28+ Entity
+│   └── enums/
+├── security/
+│   ├── WebSecurityConfig.java     # URL別アクセス権限設定
+│   ├── RecaptchaFilter.java       # reCAPTCHAカスタムフィルター
+│   ├── AjaxAuthenticationSuccessHandler.java
+│   ├── AjaxAuthenticationFailureHandler.java
+│   └── AuthenticatedUserDetailsService.java
+├── service/                       # 12個のサービス
+├── repository/                    # 27個のリポジトリ
+├── exception/                     # 共通例外処理
+└── util/
+    ├── FileManager.java
+    └── RecaptchaService.java
+
+src/main/resources/
+├── application.properties
+├── messages.properties                # 韓国語メッセージ
+├── messages_ja.properties             # 日本語メッセージ
+├── templates/
+│   ├── adminView/                     # 管理者画面
+│   ├── AuthenticatedFragments/        # 認証後共通フラグメント
+│   ├── chat/                          # チャット画面
+│   ├── errorView/                     # エラーページ
+│   ├── fragments/                     # チャットポップアップ画面
+│   ├── mainView/                      # 地図メイン画面
+│   ├── mapView/                       # 地図・検索画面
+│   ├── NonLoginFragments/             # 非ログイン共通フラグメント
+│   ├── NonLoginView/                  # 非ログイン画面
+│   ├── recruiterView/                 # 求人者画面
+│   ├── SeekerView/                    # 求職者画面
+│   └── home.html                      # メインホーム
+└── static/
+    ├── css/
+    ├── js/
+    └── images/
+```
+
+</details>
+
+<br>
+
+
 
 ## 📸 スクリーンショット
 
