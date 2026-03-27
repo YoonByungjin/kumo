@@ -264,14 +264,17 @@ src/main/resources/
 
 ## 📸 스크린샷
 
-| 홈 화면 |        로그인 (reCAPTCHA)         |
-|:---:|:------------------------------:|
-| ![홈](docs/images/home.png) | ![PW찾기](docs/images/email.png) |
+### 홈 화면
+![홈](docs/images/home.png)
 
-| 알림 기능 |             지원 내역 확인              |
-|:---:|:---------------------------------:|
-| ![알림](docs/images/notification.png) | ![이력서 관리](docs/images/resume.png) |
+### 이메일 인증 (패스워드 재설정)
+![이메일인증](docs/images/email.png)
 
+### 알림 기능
+![알림](docs/images/notification.png)
+
+### 이력서 관리
+![이력서](docs/images/resume.png)
 <br>
 
 ## 📌 릴리즈 로드맵 (TODO List)
