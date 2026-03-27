@@ -181,13 +181,13 @@
 |------|------|
 | **Spring Security & reCAPTCHA** | 모든 요청의 최전방에서 인증/인가를 처리하여 악의적 접근을 차단 |
 | **Controller** | 사용자 요청을 수신하고 CookieLocaleResolver를 통해 한국어/일본어 UI를 동적 전환 |
-| **Service Layer** | 핵심 비즈니스 로직 처리. 채팅(STOMP/WebSocket), 알림(Event-driven Polling), 이메일 발송 담당 |
+| **Service Layer** | 12개의 서비스 클래스로 구성된 핵심 비즈니스 로직 계층. 구직자/구인자 관리, 공고 검색, 채팅(STOMP/WebSocket), 알림(이벤트 트리거 기반 REST API), 이메일 인증 등을 처리 |
 | **JPA Repository** | Spring Data JPA를 통한 데이터 접근 계층. MySQL과의 상호작용을 추상화 |
 | **Python Data Pipeline** | Selenium 크롤링 → pandas 정제 → Gemini AI 파싱/번역 → Google Maps 지오코딩 → 지역 필터링 → DB 적재까지 7단계 자동화 |
 
 <br>
 
-## 🗄️ ER図
+## 🗄️ ERD 그래프
 
 <!-- ERD 이미지를 docs/images/ 에 넣고 경로를 수정하세요 -->
 ![ER図](docs/images/erd.png)
