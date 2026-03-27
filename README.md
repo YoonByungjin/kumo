@@ -187,11 +187,12 @@
 
 <br>
 
-## 🗄️ ERD 그래프
+## 📊 ERD
 
-<!-- ERD 이미지를 docs/images/ 에 넣고 경로를 수정하세요 -->
-![ER図](docs/images/ERD.png)
+### 핵심 테이블 구조
+![Core ERD](docs/images/ERD.png)
 
+> 전체 ERD(28 테이블)는 [여기](docs/images/ERD.png)에서 확인할 수 있습니다.
 <br>
 
 ## 📁 프로젝트 구조
