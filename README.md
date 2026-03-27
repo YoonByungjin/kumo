@@ -21,257 +21,16 @@
 
 ---
 
-<br>
-
-# 🇯🇵 Japanese Version
-
-## 📝 プロジェクト紹介
-
-| 項目 | 内容 |
-|------|------|
-| プロジェクト名 | KUMO（くも） |
-| 開発期間 | 2026年1月 〜 2026年3月（約7週間） |
-| チーム構成 | 5名（リーダーとして参加） |
-| 成果 | プロジェクトコンテスト **3位入賞** |
-
-**KUMO**は、日本（東京・大阪）エリアの求人情報を地図上で一目で確認し、現在地周辺の求人を簡単に検索できる**地図基盤のマッチングプラットフォーム**です。
-韓国語と日本語の同時サポートに加え、求職者と求人者間のリアルタイム1:1チャット機能を提供し、スムーズなコミュニケーションを支援します。
-
-🎥 **[デモ動画を見る（YouTube）](https://youtu.be/94VRuBHwwlk)**
-
-<br>
-
-## ✨ 主要機能 (Key Features)
-
-### 🗺️ スマートマップ検索
-- **Google Maps連動＆クラスタリング:** 多数の求人情報を地図上で見やすくグループ化してレンダリング
-- **GPS基盤の周辺検索:** 現在地を基準に半径内の求人をフィルタリング（東京・大阪エリア対応）
-
-### 💼 カスタマイズ求人管理
-- **多言語サポート:** ユーザーの設定に応じて韓国語(KR) / 日本語(JP)の求人内容およびUIを自動切り替え
-- **ボトムシート＆フローティングカード:** 地図を移動しながら直感的に求人の要約情報を確認
-- **最近見た求人＆お気に入り(Scrap):** 気になる求人をローカル/データベースに保存して一覧表示
-
-### 💬 リアルタイムコミュニケーション＆管理
-- **1:1 リアルタイムチャット (STOMP/WebSocket):** 求人ごとに求職者・求人者間のチャットルームを即時生成し対話
-- **管理者クローリングデータの分離:** 独自登録の求人とシステム(Admin)収集求人を分離し、体系的にデータ管理
-- **悪質求人の通報機能:** スパムや虚偽の求人をブロックするためのモーダルおよび通報受付システム
-
-<br>
-
-## 👤 担当機能 (ユン・ビョンジン)
-
-> 5名のチームで**リーダー**を務め、企画から設計・実装・テストまで以下の機能を担当しました。
-
-### 🔐 認証・セキュリティ
-
-| 機能 | 実装詳細 |
-|------|----------|
-| Spring Security設定 | `SecurityFilterChain`によるURL別アクセス制御。非ログイン・求職者(`SEEKER`)・求人者(`RECRUITER`)・管理者(`ADMIN`)のロール別権限分離 |
-| 不正ログイン対策 (reCAPTCHA) | `RecaptchaFilter`を独自実装し`UsernamePasswordAuthenticationFilter`の前に配置。ログイン5回失敗時にGoogle reCAPTCHA v2認証を強制表示。サーバーサイドでGoogle APIを呼び出しトークンを検証 |
-| Ajaxログインハンドラー | `AjaxAuthenticationSuccessHandler` / `FailureHandler`による非同期ログイン処理。失敗時にfailCount・showCaptchaフラグをJSONで返却し、フロントで動的UI制御 |
-| ログイン履歴記録 | 全てのログイン試行を`LoginHistoryEntity`に記録（メール、IP、User-Agent、失敗理由）。プロキシ・ロードバランサー環境を考慮したクライアントIP抽出ロジックを実装 |
-| パスワードリセット | Java Mail Senderで認証メールを送信 → メール認証完了後にパスワード変更ページへ遷移するセキュリティワークフローを構築 |
-| パスワード暗号化 | `BCryptPasswordEncoder`によるパスワードハッシュ化処理 |
-
-### 🏠 非ログイン画面全般
-
-| 機能 | 実装詳細 |
-|------|----------|
-| ホーム・ログイン | サービスランディングページおよびAjax基盤のログイン画面を実装 |
-| 会員登録（求職者） | 基本情報入力 + メール重複確認（Ajax）→ 登録即時アクティブ化 |
-| 会員登録（求人者） | 基本情報 + 事業証明書類添付 → 登録後`isActive=false`状態。Adminが書類確認後に手動承認するワークフロー |
-| ID検索 | 求職者/求人者タブ分離、氏名 + 連絡先でメールアドレス検索 |
-| PW検索・変更 | 氏名 + 連絡先 + メール入力 → メール認証完了後にPW変更ページへ遷移 |
-
-### 🌐 共通UI
-
-| 機能 | 実装詳細 |
-|------|----------|
-| 多言語トグル（韓国語 ↔ 日本語） | `CookieLocaleResolver`（Cookie名: `lang`、有効期間1日）+ `LocaleChangeInterceptor`によるURLパラメータ（`?lang=ko/ja`）基盤の言語切替。`messages.properties` / `messages_ja.properties`連動 |
-| ダークモード | `localStorage`にテーマを保存 → `body.dark-mode`クラストグル → CSS変数（`:root` vs `body.dark-mode`）で配色切替。ページロード時のFOUC（白フラッシュ）防止のためDOMContentLoaded前に即時適用処理を実装 |
-
-### 👤 求職者（Seeker）機能
-
-| 機能 | 実装詳細 |
-|------|----------|
-| 履歴書管理 | `ResumeDto`一つでフォーム全体を受信 → `@Transactional`内で既存データの全削除（delete）→ flush → 7つのEntityに新規insertする全置換方式で実装。途中失敗時は全体ロールバック保証 |
-| 履歴書データ構造 | `UserEntity`を中心に`SeekerProfileEntity`(1:1)、`SeekerDesiredConditionEntity`(1:1)、`SeekerCareerEntity`(1:N)、`SeekerEducationEntity`(1:N)、`SeekerCertificateEntity`(1:N)、`SeekerLanguageEntity`(1:N)、`SeekerDocumentEntity`(1:N)を連結 |
-| ポートフォリオファイルアップロード | `UUID + 元ファイル名`でローカル保存 → DBにファイルパスを記録 |
-| マイページ | プロフィール編集・公開設定・スカウト受信同意管理 |
-| スカウト管理 | 求人者からのスカウト提案の受信・確認・応答処理 |
-| 応募履歴 | 求人応募履歴の照会および進行状況確認 |
-
-### 🔔 通知
-
-| 機能 | 実装詳細 |
-|------|----------|
-| イベント駆動型通知システム | ビジネスロジック実行時にサーバーサイドで通知データを生成しDBに永続化。ページロード時に`/api/notifications/unread-count`を呼び出しヘッダーのベルアイコンバッジに未読数を表示。ユーザーがアイコンクリック時に`/api/notifications`で通知一覧を取得。各通知にターゲットURLを保存しクリック時に該当ページへ直接遷移 |
-| 求職者向け通知イベント | ① 求人応募完了(`APP_COMPLETED`)、② 書類合格(`APP_PASSED`)、③ 書類不合格(`APP_FAILED`)、④ スカウト提案(`SCOUT_OFFER`)、⑤ 応募中の求人締切(`JOB_CLOSED`) |
-| 求人者向け通知イベント | ① 新規応募者受付(`NEW_APPLICANT`)、② 投稿通報受付(`REPORT_RESULT`) |
-| 多言語動的変換 | DBには通知タイプコード + ターゲットURLのみ保存。照会時に`MessageSource`を通じてユーザーのLocaleに合わせた文言をリアルタイム生成して返却 |
-| 既読処理 | PATCH `/api/notifications/read-all`で`is_read`状態を一括変更 |
-
-### 🕷️ データ収集パイプライン
-
-| ステップ | 実装詳細 |
-|----------|----------|
-| 1. クローリング | Seleniumでダウムカフェ（在日韓国人コミュニティ）の求人掲示板から新規投稿を収集。既存DB最新記事番号（`datanum`）基準で新規のみクローリング |
-| 2. AIパーシング | Gemini API（`gemini-2.5-flash`）で非定型投稿本文を定型JSON（会社名、住所、連絡先、職務、給与等）に自動抽出。429エラー防御リトライロジック搭載 |
-| 3. 欠損値処理 | 会社名・住所なしのデータ削除、3段階重複投稿除去（タイトル → 会社名+住所+連絡先 → 会社名+住所） |
-| 4. ジオコーディング | Google Maps Geocoding APIで住所 → 緯度/経度変換。座標エラー行の自動削除 |
-| 5. 地域フィルタリング | リバースジオコーディングで行政区域を抽出 → 大阪市（東京版は東京都）データのみフィルタリング。韓国語区名マッピング含む |
-| 6. 翻訳 | Gemini APIで韓国語データを日本語に一括翻訳 |
-| 7. DB保存 | MySQL `osaka_geocoded` / `tokyo_geocoded` テーブルにINSERT。Admin用アカウント自動マッピング |
-
-### 📋 PM役割
-
-| 項目 | 内容 |
-|------|------|
-| 進捗管理 | WBS作成、5名のタスク分担および進行状況管理。7週間でプロジェクト完遂 |
-| Git戦略 | `feature/機能名`ブランチ戦略策定、コミットメッセージ規則（`[FEAT]`, `[FIX]`, `[REFACTOR]`, `[CHORE]`）運用 |
-| 品質管理 | 手動テスト繰り返し実施、共通例外処理構造（`GlobalExceptionHandler`）構築 |
-| 技術支援 | チームメンバー間の技術的ボトルネック（API連動等）解決支援 |
-
-<br>
-
-## 🏗️ システムアーキテクチャ
-
-<!-- アーキテクチャ画像を docs/images/ に入れてパスを修正してください -->
-![システムアーキテクチャ](docs/images/architecture.png)
-
-```mermaid
-graph TD
-    User((ユーザー)) -->|Browser| Controller["Spring Boot Controller"]
-    Controller --> Service["Service Layer"]
-    Service --> Repository["JPA Repository"]
-    Repository --> DB[("MySQL DB")]
-
-    Service -->|ジオコーディング| GoogleMaps["Google Maps API"]
-    Service -->|AIパーシング・翻訳| Gemini["Gemini API"]
-    Service -->|認証メール| Mail["Java Mail Sender"]
-
-    Controller -.->|言語切替| Locale["CookieLocaleResolver"]
-    Locale --> Messages["messages.properties\nmessages_ja.properties"]
-
-    Security["Spring Security\nreCAPTCHA Filter"] -->|認証・認可| Controller
-```
-
-<br>
-
-## 🗄️ ER図
-
-<!-- ER図画像を docs/images/ に入れてパスを修正してください -->
-![ER図](docs/images/erd.png)
-
-<br>
-
-## 📁 プロジェクト構造
-
-<details>
-<summary>クリックして全体構造を表示</summary>
-
-```
-src/main/java/net/kumo/kumo/
-├── KumoApplication.java
-├── config/
-│   ├── LocaleConfig.java          # 多言語(i18n) Cookie基盤設定
-│   ├── WebMvcConfig.java          # MVC設定
-│   └── WebSocketConfig.java       # WebSocket(STOMP)設定
-├── controller/                    # 16コントローラー
-│   ├── HomeController.java
-│   ├── LoginController.java
-│   ├── SeekerController.java
-│   ├── RecruiterController.java
-│   ├── AdminController.java
-│   ├── MapController.java
-│   ├── NotificationController.java
-│   ├── ChatController.java
-│   └── ...
-├── domain/
-│   ├── dto/                       # 30+ DTO
-│   ├── entity/                    # 28+ Entity
-│   └── enums/
-├── security/
-│   ├── WebSecurityConfig.java     # URL別アクセス権限設定
-│   ├── RecaptchaFilter.java       # reCAPTCHAカスタムフィルター
-│   ├── AjaxAuthenticationSuccessHandler.java
-│   ├── AjaxAuthenticationFailureHandler.java
-│   └── AuthenticatedUserDetailsService.java
-├── service/                       # 12サービス
-├── repository/                    # 27リポジトリ
-├── exception/                     # 共通例外処理
-└── util/
-    ├── FileManager.java
-    └── RecaptchaService.java
-
-src/main/resources/
-├── application.properties
-├── messages.properties            # 韓国語メッセージ
-├── messages_ja.properties         # 日本語メッセージ
-├── templates/
-│   ├── NonLoginView/              # 非ログイン画面
-│   ├── SeekerView/                # 求職者画面
-│   ├── mainView/recruiterView/    # 求人者画面
-│   ├── adminView/                 # 管理者画面
-│   ├── mapView/                   # 地図・検索画面
-│   └── chat/                      # チャット画面
-└── static/
-    ├── css/
-    ├── js/
-    └── images/
-```
-
-</details>
-
-<br>
-
-## 📸 スクリーンショット
-
-<!-- スクリーンショットを docs/images/ に入れてパスを修正してください -->
-
-| ホーム画面 | 地図検索 |
-|:---:|:---:|
-| ![ホーム](docs/images/home.png) | ![地図](docs/images/map.png) |
-
-| ログイン | 履歴書管理 |
-|:---:|:---:|
-| ![ログイン](docs/images/login.png) | ![履歴書](docs/images/resume.png) |
-
-<br>
-
-## 📌 リリースロードマップ (TODO List)
-
-- [x] 🗺️ **地図の基本機能実装** (Google Maps連動およびマーカークラスタリング)
-- [x] 📱 **サイドバー / ボトムシートUI実装** (レスポンシブ対応)
-- [x] 📍 **周辺の求人検索** (GPS基盤の半径フィルタリング完了)
-- [x] 🔍 **検索およびフィルタリング** (地域・キーワード連動検索実装完了)
-- [x] ⭐ **最近見た求人およびお気に入り(Scrap)機能実装**
-- [x] 💬 **リアルタイム 1:1 チャット機能導入**
-- [x] 🌐 **韓国語/日本語の多言語(i18n)システム適用**
-- [x] 🔔 プッシュ通知システムおよび未読メッセージバッジの高度化
-- [x] 🛠️ 統合管理者(Admin)ダッシュボード構築
-
-<br>
-
-## 🤝 協業ルール (Contributing)
-円滑なチームプロジェクト進行のため、以下の事項を必ず守ってください！ 😊
-1. **ブランチ(Branch)の作成:** 作業時は必ず `feature/機能名` の形式でブランチを作成してください。
-2. **構造変更の事前共有:** データベースのテーブル構造(Entity)の変更や、コアロジック・共通コンポーネント(Header/Footer/BaseEntity)の修正・フォークを行う際は、**必ずチームメンバーに事前に共有**してください！ 🚨
-3. **コミットメッセージのルール:** - `[FEAT]` : 新機能の追加 / `[FIX]` : バグ修正 / `[REFACTOR]` : リファクタリング / `[CHORE]` : 環境設定など
-
-<br>
-
 # 🇰🇷 Korean Version
 
 ## 📝 프로젝트 소개
 
-| 항목 | 내용 |
-|------|------|
-| 프로젝트명 | KUMO（くも） |
-| 개발 기간 | 2026년 1월 ~ 2026년 3월 (약 7주) |
-| 팀 구성 | 5명 (리더로 참여) |
-| 성과 | 프로젝트 콘테스트 **3위 입상** |
+| 항목 | 내용                               |
+|------|----------------------------------|
+| 프로젝트명 | KUMO（くも）                         |
+| 개발 기간 | 2026년 1월16일 ~ 2026년 3월10일 (약 7주) |
+| 팀 구성 | 5명 (리더로 참여)                      |
+| 성과 | 프로젝트 콘테스트 **3위 입상**              |
 
 **KUMO**는 일본(도쿄, 오사카) 지역의 구인구직 정보를 지도 위에서 한눈에 확인하고, 내 주변의 일자리를 손쉽게 탐색할 수 있는 **지도 기반 매칭 플랫폼**입니다.
 한국어와 일본어를 동시 지원하며, 구직자와 구인자 간의 실시간 1:1 채팅 기능을 제공하여 빠른 소통을 돕습니다.
@@ -282,19 +41,59 @@ src/main/resources/
 
 ## ✨ 주요 기능 (Key Features)
 
-### 🗺️ 스마트 맵 탐색
-- **구글 맵 연동 & 클러스터링:** 수많은 공고를 맵 위에서 깔끔하게 그룹화하여 렌더링
-- **GPS 기반 주변 탐색:** 내 위치를 기반으로 반경 내의 일자리 필터링 (도쿄/오사카 지역 완벽 지원)
+### 🗺️ 지도 기반 구인구직
+- **Google Maps 연동:** 도쿄/오사카 지역 공고를 지도 위 마커로 표시하고, 줌 레벨에 따라 클러스터링 지원
+- **GPS 기반 탐색:** 사용자 현재 위치를 기준으로 주변 공고 탐색
+- **지오코딩:** 주소 입력 시 위도/경도로 변환하여 지도 마커 생성
+- **공고 밀집도 시각화:** 특정 지역에 등록된 공고 수를 지도 위에서 직관적으로 확인 가능
 
-### 💼 맞춤형 공고 관리
-- **다국어 지원:** 사용자 설정에 따라 한국어(KR) / 일본어(JP) 공고 내용 및 UI 자동 변환
-- **바텀시트 & 플로팅 카드:** 지도를 이동하며 직관적으로 공고 요약 정보 확인
-- **최근 본 공고 & 찜하기(Scrap):** 관심 있는 공고를 로컬/DB에 저장하여 모아보기
+### 🔍 공고 검색 & 관리
+- **지역 전환 & 키워드 검색:** 도쿄/오사카 지역 구분 및 키워드 검색 지원
+- **지도형 & 목록형 보기:** 사용자 선호에 따라 지도형 / 목록형 탐색 방식 제공
+- **공고 CRUD:** 구인자가 공고 작성, 수정, 마감 처리 가능
+- **이미지 업로드:** 공고 등록 시 이미지 첨부 지원
+- **찜하기(Scrap):** 관심 공고 저장 및 스크랩한 공고 모아보기
+- **최근 본 공고:** 사용자가 열람한 공고 이력 자동 저장
 
-### 💬 실시간 소통 및 관리
-- **1:1 실시간 채팅 (STOMP/WebSocket):** 공고별로 구인자-구직자 간 즉각적인 채팅방 생성 및 대화
-- **어드민 크롤링 데이터 분리:** 자체 등록 공고와 시스템(Admin) 수집 공고를 분리하여 체계적인 데이터 관리
-- **악성 공고 신고 기능:** 스팸, 허위 매물 차단을 위한 모달 및 신고 접수 시스템
+### 🔐 회원 & 인증
+- **유형별 회원가입:** 구직자(Seeker) / 구인자(Recruiter) 분리 회원가입 지원
+- **기업 회원 인증:** 구인자는 가입 시 증빙자료 첨부 필수
+- **보안 인증:** Spring Security + BCrypt 기반 비밀번호 암호화, 로그인 5회 실패 시 reCAPTCHA 적용
+- **ID 찾기:** 이름(성 + 이름) + 연락처로 확인
+- **PW 찾기:** 이름 + 연락처 확인 후 이메일 인증 진행
+- **프로필 관리:** 프로필 사진, 닉네임, 기업 정보 수정 지원
+
+### 👔 구인자 전용 기능
+- **채용 대시보드:** 지원자 수, 방문자 수 등 통계 데이터를 차트로 시각화
+- **공고 관리:** 공고 작성, 수정, 마감 처리 및 이미지 업로드 지원
+- **지원자 관리:** 공고별 지원자 목록 확인, 이력서 열람, 지원 상태(승인 / 거절) 변경
+- **스카우트:** 이력서 공개 및 스카우트 수신에 동의한 구직자 목록을 확인하고 직접 스카우트 제의 가능
+- **일정 관리:** FullCalendar 연동을 통한 면접 일정 등 캘린더 관리
+
+### 👤 구직자 전용 기능
+- **마이페이지:** 지원 현황, 활동 내역, 스카우트 제의 내역 통합 관리
+- **이력서 관리:** 학력, 경력, 자격증, 언어 능력 등 상세 프로필 등록
+- **공개 설정:** 이력서 공개 여부 및 스카우트 수신 여부 설정 가능 상황에 따라 연락처 공개/비공개도 가능
+- **공고 지원:** 프로필 및 서류를 첨부하여 원하는 공고에 지원
+- **스카우트 현황:** 구인자로부터 받은 스카우트 제의 리스트 확인 가능
+
+### 💬 실시간 소통
+- **1:1 채팅 (WebSocket/STOMP):** 공고 기반 구인자-구직자 간 실시간 채팅 지원
+- **채팅 번역:** 번역 토글 버튼 클릭 시 한국어 ↔ 일본어 번역 전환 가능 (DeepL API)
+- **파일 공유:** 채팅 내 이미지 및 문서 전송 지원
+- **읽음 확인:** 메시지 읽음 / 안읽음 표시 및 채팅방 리스트 관리
+
+### 🌐 다국어 & UI
+- **한일 바이링걸 지원:** UI 및 공고 내용을 한국어 / 일본어로 전환 가능
+- **다크모드 / 라이트모드:** 테마 전환 지원 및 페이지 이동 시 설정 유지
+- **실시간 알림:** 지원, 스카우트, 합격 / 불합격, 지원 중인 공고 마감, 게시글 신고 접수 / 피신고 시 알림 제공
+
+### 🛠️ 관리자 기능
+- **관리자 대시보드:** 사용자 수, 신규 가입자, 신고 내역 등 운영 현황 모니터링
+- **회원 관리:** 구인자 가입 승인, 유저 권한 및 계정 활성화 설정
+- **신고 처리:** 허위 공고 신고 접수 및 블라인드 처리
+- **사이트 통계:** 지역별 공고 현황 시각화
+- **보안 로그:** 로그인 성공 / 실패 등 보안 내역 확인
 
 <br>
 
@@ -334,10 +133,10 @@ src/main/resources/
 
 | 기능 | 구현 상세 |
 |------|-----------|
-| 이력서 관리 | `ResumeDto` 하나로 폼 전체를 수신 → `@Transactional` 내에서 기존 데이터 전체 삭제(delete) → flush → 7개 Entity에 신규 insert하는 전체 교체 방식으로 구현. 중간 실패 시 전체 롤백 보장 |
+| 이력서 관리 | `ResumeDto` 하나로 폼 전체를 수신 → `@Transactional` 내에서 기존 데이터 전체 삭제(delete) → flush → 7개 Entity에 신규 insert하는 전체 교체 방식으로 구현. 중간 실패 시 전체 롤백 보장. 연락처 공개 여부·이력서 공개 여부·스카우트 수신 동의 설정 포함 |
 | 이력서 데이터 구조 | `UserEntity`를 중심으로 `SeekerProfileEntity`(1:1), `SeekerDesiredConditionEntity`(1:1), `SeekerCareerEntity`(1:N), `SeekerEducationEntity`(1:N), `SeekerCertificateEntity`(1:N), `SeekerLanguageEntity`(1:N), `SeekerDocumentEntity`(1:N) 연결 |
 | 포트폴리오 파일 업로드 | `UUID + 원본 파일명`으로 로컬 저장 → DB에 파일 경로 기록 |
-| 마이페이지 | 프로필 편집 · 공개 설정 · 스카우트 수신 동의 관리 |
+| 마이페이지 | 프로필 편집 |
 | 스카우트 관리 | 구인자로부터의 스카우트 제안 수신 · 확인 · 응답 처리 |
 | 지원 이력 | 구인 신청 이력 조회 및 진행 상태 확인 |
 
@@ -365,36 +164,26 @@ src/main/resources/
 
 ### 📋 PM 역할
 
-| 항목 | 내용 |
-|------|------|
-| 진척 관리 | WBS 작성, 5명의 태스크 분담 및 진행 상황 관리. 7주간 프로젝트 완수 |
-| Git 전략 | `feature/기능명` 브랜치 전략 수립, 커밋 메시지 규칙(`[FEAT]`, `[FIX]`, `[REFACTOR]`, `[CHORE]`) 운용 |
-| 품질 관리 | 수동 테스트 반복 실시, 공통 예외 처리 구조(`GlobalExceptionHandler`) 구축 |
-| 기술 지원 | 팀원 간 기술적 병목(API 연동 등) 해결 지원 |
+| 항목 | 내용                                                                                |
+|------|-----------------------------------------------------------------------------------|
+| 진척 관리 | WBS 작성, 5명의 태스크 분담 및 진행 상황 관리. 7주간 프로젝트 완수                                        |
+| Git 관리 | `feature/기능명` 브랜치 운용, PR 시 File Changes 확인 및 충돌 해결 후 병합 |
+| 품질 관리 | 수동 테스트 반복 실시, 버그 발견 시 원인 추적 및 수정                                                              |
+| 기술 지원 | 팀원의 구현 중 발생한 오류나 미해결 부분을 직접 수정·보완 |                                                  |
 
 <br>
 
 ## 🏗️ 시스템 아키텍처
 
-<!-- 아키텍처 이미지를 docs/images/ 에 넣고 경로를 수정하세요 -->
 ![시스템 아키텍처](docs/images/architecture.png)
 
-```mermaid
-graph TD
-    User((사용자)) -->|Browser| Controller["Spring Boot Controller"]
-    Controller --> Service["Service Layer"]
-    Service --> Repository["JPA Repository"]
-    Repository --> DB[("MySQL DB")]
-
-    Service -->|지오코딩| GoogleMaps["Google Maps API"]
-    Service -->|AI 파싱 · 번역| Gemini["Gemini API"]
-    Service -->|인증 메일| Mail["Java Mail Sender"]
-
-    Controller -.->|언어 전환| Locale["CookieLocaleResolver"]
-    Locale --> Messages["messages.properties\nmessages_ja.properties"]
-
-    Security["Spring Security\nreCAPTCHA Filter"] -->|인증·인가| Controller
-```
+| 계층 | 설명 |
+|------|------|
+| **Spring Security & reCAPTCHA** | 모든 요청의 최전방에서 인증/인가를 처리하여 악의적 접근을 차단 |
+| **Controller** | 사용자 요청을 수신하고 CookieLocaleResolver를 통해 한국어/일본어 UI를 동적 전환 |
+| **Service Layer** | 핵심 비즈니스 로직 처리. 채팅(STOMP/WebSocket), 알림(Event-driven Polling), 이메일 발송 담당 |
+| **JPA Repository** | Spring Data JPA를 통한 데이터 접근 계층. MySQL과의 상호작용을 추상화 |
+| **Python Data Pipeline** | Selenium 크롤링 → pandas 정제 → Gemini AI 파싱/번역 → Google Maps 지오코딩 → 지역 필터링 → DB 적재까지 7단계 자동화 |
 
 <br>
 
