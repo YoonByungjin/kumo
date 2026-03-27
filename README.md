@@ -190,9 +190,10 @@
 ## 📊 ERD
 
 ### 핵심 테이블 구조
-![Core ERD](docs/images/ERD.png)
 
-> 전체 ERD(28 테이블)는 [여기](docs/images/ERD.png)에서 확인할 수 있습니다.
+![Core ERD](docs/images/ERD1.png)
+
+> 전체 ERD(28 테이블)는 [여기](docs/images/ERD1.png)에서 확인할 수 있습니다.
 <br>
 
 ## 📁 프로젝트 구조
