@@ -279,7 +279,7 @@ public class ChatController {
             // 상대방 채팅 목록에 실시간으로 방 삭제 알림
             ChatMessageDTO signal = ChatMessageDTO.builder()
                     .roomId(roomId)
-                    .messageType(net.kumo.kumo.domain.entity.Enum.MessageType.SYSTEM)
+					.messageType(net.kumo.kumo.domain.entity.Enum.MessageType.SYSTEM.name())
                     .content("ROOM_DELETED")
                     .build();
             messagingTemplate.convertAndSend("/sub/chat/user/" + opponentId, signal);
