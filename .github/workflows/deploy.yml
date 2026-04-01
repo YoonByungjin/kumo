@@ -1,0 +1,46 @@
+name: CI/CD Deploy to AWS EC2
+
+# main 브랜치에 push 될 때마다 실행됩니다.
+on:
+  push:
+    branches:
+      - main  # 만약 브랜치 이름이 master라면 master로 수정하세요.
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. 내 코드 가져오기 (Checkout)
+        uses: actions/checkout@v3
+
+      - name: 2. 자바(JDK 17) 세팅 # 본인 프로젝트 자바 버전에 맞게 수정(11 또는 17)
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: 3. Gradle 실행 권한 부여
+        run: chmod +x ./gradlew
+
+      - name: 4. 프로젝트 빌드 (.jar 파일 생성)
+        run: ./gradlew clean build -x test  # 테스트 코드는 건너뛰고 빠르게 빌드
+
+      - name: 5. 빌드된 .jar 파일을 EC2로 전송 (SCP)
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          source: "build/libs/Kumo-0.0.1-SNAPSHOT.jar"
+          target: "/home/ubuntu/kumo"
+
+      - name: 6. EC2에 접속해서 deploy.sh 실행 (SSH)
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          script: |
+            cd /home/ubuntu/kumo
+            ./deploy.sh
