@@ -220,7 +220,18 @@ function connectChatList() {
 
     stompListClient.connect({}, function () {
         stompListClient.subscribe('/sub/chat/user/' + myUserId, function (messageOutput) {
-            updateChatListUI(JSON.parse(messageOutput.body));
+            const msg = JSON.parse(messageOutput.body);
+            if (msg.messageType === 'SYSTEM' && msg.content === 'ROOM_DELETED') {
+                const roomEl = document.querySelector(`.chat-item[data-room-id="${msg.roomId}"]`);
+                if (roomEl) {
+                    roomEl.style.transition = 'all 0.3s ease';
+                    roomEl.style.opacity = '0';
+                    roomEl.style.transform = 'translateX(20px)';
+                    setTimeout(() => roomEl.remove(), 300);
+                }
+                return;
+            }
+            updateChatListUI(msg);
         });
     }, function () {
         setTimeout(connectChatList, 3000);

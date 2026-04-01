@@ -190,8 +190,11 @@ public class ChatService {
      * @param userId 삭제를 요청한 사용자 식별자
      * @throws SecurityException 해당 방의 참여자가 아닌 경우
      */
+    /**
+     * 삭제 후 상대방에게 WebSocket 알림을 보낼 수 있도록 상대방 userId를 반환합니다.
+     */
     @Transactional
-    public void deleteRoom(Long roomId, Long userId) {
+    public Long deleteRoom(Long roomId, Long userId) {
         ChatRoomEntity room = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채팅방입니다."));
 
@@ -201,8 +204,13 @@ public class ChatService {
             throw new SecurityException("채팅방 삭제 권한이 없습니다.");
         }
 
+        Long opponentId = room.getSeeker().getUserId().equals(userId)
+                ? room.getRecruiter().getUserId()
+                : room.getSeeker().getUserId();
+
         chatMessageRepository.deleteByRoom(room);
         chatRoomRepository.delete(room);
+        return opponentId;
     }
 
     /**

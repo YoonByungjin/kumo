@@ -274,7 +274,17 @@ public class ChatController {
         try {
             UserEntity user = userRepository.findByEmail(principal.getName())
                     .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-            chatService.deleteRoom(roomId, user.getUserId());
+            Long opponentId = chatService.deleteRoom(roomId, user.getUserId());
+
+            // 상대방 채팅 목록에 실시간으로 방 삭제 알림
+            ChatMessageDTO signal = ChatMessageDTO.builder()
+                    .roomId(roomId)
+                    .messageType(net.kumo.kumo.domain.entity.Enum.MessageType.SYSTEM)
+                    .content("ROOM_DELETED")
+                    .build();
+            messagingTemplate.convertAndSend("/sub/chat/user/" + opponentId, signal);
+            messagingTemplate.convertAndSend("/sub/chat/room/" + roomId, signal);
+
             return ResponseEntity.ok("채팅방이 성공적으로 삭제되었습니다.");
         } catch (SecurityException e) {
             return ResponseEntity.status(403).body(e.getMessage());

@@ -52,7 +52,21 @@ function connect() {
         console.log('[WebSocket] 방 입장 완료: ' + frame);
 
         stompClient.subscribe('/sub/chat/room/' + roomId, function (messageOutput) {
-            showMessage(JSON.parse(messageOutput.body));
+            const msg = JSON.parse(messageOutput.body);
+            if (msg.messageType === 'SYSTEM' && msg.content === 'ROOM_DELETED') {
+                alert(window.CHAT_LANG ? window.CHAT_LANG.roomDeleted : '상대방이 채팅방을 삭제했습니다.');
+                try {
+                    if (window.parent && window.parent !== window) {
+                        window.parent.document.getElementById('floatingChatFrame').src = '/chat/list';
+                    } else {
+                        location.href = '/chat/list';
+                    }
+                } catch(e) {
+                    location.href = '/chat/list';
+                }
+                return;
+            }
+            showMessage(msg);
         });
 
         scrollToBottom();
