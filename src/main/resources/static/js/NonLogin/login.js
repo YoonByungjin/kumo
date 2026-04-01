@@ -96,8 +96,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 error: function(xhr) {
                     const response = xhr.responseJSON;
-                    const errorText = response?.message
-                        || (typeof loginMessages !== 'undefined' ? loginMessages.error_text : '아이디 또는 비밀번호가 일치하지 않습니다.');
+                    const errorText = (response?.showCaptcha && loginMessages?.fail_captcha)
+                        ? loginMessages.fail_captcha
+                        : (response?.message || loginMessages?.error_text || '아이디 또는 비밀번호가 일치하지 않습니다.');
 
                     Swal.fire({
                         icon: 'error',

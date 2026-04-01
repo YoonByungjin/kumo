@@ -18,9 +18,7 @@
 
 <input type="hidden" id="roomId" th:value="${roomId}">
 <input type="hidden" id="myId" th:value="${userId}">
-<!--<input type="hidden" id="opponentImg" th:value="${opponentProfileImg}"> <div class="store-profile-row">-->
-<!--    <img th:src="${opponentProfileImg}" class="header-store-img" style="object-fit: cover;"> <span class="header-store-name" th:text="${roomName}">상대방 이름</span>-->
-<!--</div>-->
+<input type="hidden" id="opponentImg" th:value="${opponentProfileImg}">
 
 <div th:if="${strSenderId != strUserId}" class="msg-row other">
     <img th:src="${opponentProfileImg}" class="profile-img" style="object-fit: cover;"> ...
@@ -28,7 +26,7 @@
 
 <div class="mobile-container">
     <div class="chat-header">
-        <a th:href="@{/chat/list(userId=${userId}, lang=${param.lang})}" class="header-back-btn">
+        <a th:href="@{/chat/list(userId=${userId})}" class="header-back-btn">
             <i class="fa-solid fa-chevron-left"></i>
         </a>
 

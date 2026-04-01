@@ -88,10 +88,11 @@ public class MapController {
     public String jobDetailPage(
             @RequestParam Long id,
             @RequestParam String source,
-            @RequestParam(defaultValue = "kr") String lang,
+            Locale locale,
             Principal principal,
             Model model) {
 
+        String lang = locale.getLanguage().equals("ja") ? "ja" : "kr";
         JobDetailDTO job = mapService.getJobDetail(id, source, lang);
         boolean isOwner = false;
         boolean isSeeker = false;

@@ -146,15 +146,24 @@ function togglePinRoom(event, element) {
     const pinText = element.querySelector('.pin-text');
     if (!chatItem) return;
 
-    const isPinned = chatItem.classList.contains('is-pinned');
-    if (isPinned) {
-        chatItem.classList.remove('is-pinned');
-        pinText.innerText = window.CHAT_LANG.pin;
-    } else {
-        chatItem.classList.add('is-pinned');
-        pinText.innerText = window.CHAT_LANG.unpin;
-    }
-    location.reload();
+    const roomId = chatItem.getAttribute('data-room-id');
+
+    fetch(`/chat/room/${roomId}/pin`, { method: 'POST' })
+        .then(res => {
+            if (!res.ok) throw new Error('pin failed');
+            return res.json();
+        })
+        .then(pinned => {
+            if (pinned) {
+                chatItem.classList.add('is-pinned');
+                pinText.innerText = window.CHAT_LANG.unpin;
+            } else {
+                chatItem.classList.remove('is-pinned');
+                pinText.innerText = window.CHAT_LANG.pin;
+            }
+            location.reload();
+        })
+        .catch(err => console.error('핀 토글 실패:', err));
 }
 
 /**
@@ -168,14 +177,13 @@ function deleteRoom(event, element) {
     event.stopPropagation();
     const chatItem = element.closest('.chat-item');
     const roomId = chatItem.getAttribute('data-room-id');
-    const userId = window.MY_USER_ID;
 
     const confirmMsg = (window.CHAT_LANG && window.CHAT_LANG.deleteConfirm)
         ? window.CHAT_LANG.deleteConfirm
         : '정말 이 채팅방을 나가시겠습니까?';
 
     if (confirm(confirmMsg)) {
-        fetch(`/chat/room/exit/${roomId}?userId=${userId}`, {
+        fetch(`/chat/room/exit/${roomId}`, {
             method: 'POST'
         }).then(res => {
             if (res.ok) {
@@ -245,6 +253,13 @@ function updateChatListUI(newMsg) {
         const isUnread = (String(newMsg.senderId) !== String(window.MY_USER_ID));
         targetRoom.setAttribute('data-unread', String(isUnread));
         toggleUnreadBadge(targetRoom, isUnread);
+
+        try {
+            if (window.parent && typeof window.parent.updateSidebarBadge === 'function') {
+                window.parent.updateSidebarBadge();
+            }
+        } catch(e) {}
+
 
         const container = document.querySelector('.chat-list');
         if (!targetRoom.classList.contains('is-pinned')) {

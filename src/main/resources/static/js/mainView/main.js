@@ -386,7 +386,7 @@ const JobService = {
             params.minLat = urlParams.get('minLat') || 0;
         }
 
-        const currentLang = new URLSearchParams(window.location.search).get('lang') === 'ja' ? 'ja' : 'kr';
+        const currentLang = document.documentElement.lang === 'ja' ? 'ja' : 'kr';
         UIManager.updateTableHeader(currentLang);
         params.lang = currentLang;
 
@@ -417,7 +417,7 @@ const JobService = {
     },
 
     loadSavedJobs: function() {
-        const currentLang = new URLSearchParams(window.location.search).get('lang') === 'ja' ? 'ja' : 'kr';
+        const currentLang = document.documentElement.lang === 'ja' ? 'ja' : 'kr';
 
         $.ajax({
             url: `/api/scraps?lang=${currentLang}`,
@@ -476,7 +476,7 @@ const JobService = {
     // 🌟 [수정] 검색바에서 검색 실행 시 지역(mainRegion)도 같이 달고 새 창으로 이동!
     searchJobs: function() {
         const keyword = $('#keywordInput').val().trim();
-        const currentLang = new URLSearchParams(window.location.search).get('lang') || 'kr';
+        const currentLang = document.documentElement.lang || 'kr';
 
         // 1. 현재 화면의 셀렉트 박스(도쿄/오사카)에서 선택된 값을 가져옵니다.
         const currentRegion = $('#regionSelect').val() || 'tokyo';
@@ -492,7 +492,7 @@ const JobService = {
     },
 
     initSavedJobs: function() {
-        const currentLang = new URLSearchParams(window.location.search).get('lang') === 'ja' ? 'ja' : 'kr';
+        const currentLang = document.documentElement.lang === 'ja' ? 'ja' : 'kr';
         $.ajax({
             url: `/api/scraps?lang=${currentLang}`,
             method: 'GET',
@@ -654,7 +654,7 @@ const UIManager = {
 
     renderList: function(jobs, isSavedMode = false) {
         const $tbody = $('#listBody');
-        const currentLang = new URLSearchParams(window.location.search).get('lang') === 'ja' ? 'ja' : 'kr';
+        const currentLang = document.documentElement.lang === 'ja' ? 'ja' : 'kr';
 
         if (!jobs || jobs.length === 0) {
             $tbody.html(`<tr><td colspan="7" class="msg-box">${MapMessages.emptyJob}</td></tr>`);
@@ -723,7 +723,7 @@ const UIManager = {
     },
 
     openJobCard: function(job) {
-        const currentLang = new URLSearchParams(window.location.search).get('lang') === 'ja' ? 'ja' : 'kr';
+        const currentLang = document.documentElement.lang === 'ja' ? 'ja' : 'kr';
         const detailUrl = `/map/jobs/detail?id=${job.id}&source=${job.source}&lang=${currentLang}`;
         const $card = $('#jobDetailCard');
 
@@ -787,7 +787,7 @@ const UIManager = {
         const $btn = $(btnElement);
         const jobId = $btn.data('id');
         const source = $btn.data('source');
-        const currentLang = new URLSearchParams(window.location.search).get('lang') === 'ja' ? 'ja' : 'kr';
+        const currentLang = document.documentElement.lang === 'ja' ? 'ja' : 'kr';
         const jobSignature = jobId + '_' + source;
 
         $.ajax({
@@ -830,7 +830,7 @@ const UIManager = {
     },
 
     toggleCardScrap: function(jobId, source) {
-        const currentLang = new URLSearchParams(window.location.search).get('lang') === 'ja' ? 'ja' : 'kr';
+        const currentLang = document.documentElement.lang === 'ja' ? 'ja' : 'kr';
         const jobSignature = jobId + '_' + source;
 
         $.ajax({

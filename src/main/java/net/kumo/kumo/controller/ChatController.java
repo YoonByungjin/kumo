@@ -267,13 +267,39 @@ public class ChatController {
     @ResponseBody
     public ResponseEntity<String> exitChatRoom(
             @PathVariable Long roomId,
-            @RequestParam Long userId) {
+            java.security.Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(401).body("로그인이 필요합니다.");
+        }
         try {
-            chatRoomRepository.deleteById(roomId);
+            UserEntity user = userRepository.findByEmail(principal.getName())
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+            chatService.deleteRoom(roomId, user.getUserId());
             return ResponseEntity.ok("채팅방이 성공적으로 삭제되었습니다.");
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(e.getMessage());
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.internalServerError().body("채팅방 삭제 중 오류가 발생했습니다.");
+        }
+    }
+
+    @PostMapping("/chat/room/{roomId}/pin")
+    @ResponseBody
+    public ResponseEntity<Boolean> togglePin(
+            @PathVariable Long roomId,
+            java.security.Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(401).build();
+        }
+        try {
+            UserEntity user = userRepository.findByEmail(principal.getName())
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+            boolean pinned = chatService.togglePin(roomId, user.getUserId());
+            return ResponseEntity.ok(pinned);
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
         }
     }
 }

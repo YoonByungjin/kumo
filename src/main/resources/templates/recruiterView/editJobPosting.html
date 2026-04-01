@@ -130,7 +130,9 @@
                                 th:text="#{job.edit.btn.cancel}">취소</button>
                         <button type="button" class="kumo-btn-close" onclick="closePosting()"
                                 th:text="#{job.edit.btn.close}">마감하기</button>
-                        <button type="submit" class="kumo-btn-edit" th:text="#{job.edit.btn.submit}">공고수정</button>
+                        <input type="hidden" name="titleJp" id="titleJpHidden">
+                        <button type="submit" class="kumo-btn-edit" th:text="#{job.edit.btn.submit}"
+                                onclick="document.getElementById('titleJpHidden').value = document.querySelector('[name=title]').value">공고수정</button>
                     </div>
                 </form>
 

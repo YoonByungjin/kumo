@@ -187,13 +187,13 @@ public class MapService {
         if ("OSAKA".equalsIgnoreCase(dto.getTargetSource())) {
             OsakaGeocodedEntity job = osakaRepo.findById(dto.getTargetPostId()).orElse(null);
             if (job != null) {
-                jobTitle = job.getTitle();
+                jobTitle = buildBilingualTitle(job.getTitle(), job.getTitleJp());
                 recruiter = job.getUser();
             }
         } else if ("TOKYO".equalsIgnoreCase(dto.getTargetSource())) {
             TokyoGeocodedEntity job = tokyoRepo.findById(dto.getTargetPostId()).orElse(null);
             if (job != null) {
-                jobTitle = job.getTitle();
+                jobTitle = buildBilingualTitle(job.getTitle(), job.getTitleJp());
                 recruiter = job.getUser();
             }
         }
@@ -284,5 +284,14 @@ public class MapService {
         }
 
         return results;
+    }
+
+    /**
+     * 한국어 제목과 일본어 제목을 "|||" 구분자로 합쳐 알림 저장용 문자열을 만든다.
+     * getDtoList에서 locale에 따라 split하여 사용한다.
+     */
+    private String buildBilingualTitle(String ko, String ja) {
+        if (ja == null || ja.isBlank()) return ko;
+        return ko + "|||" + ja;
     }
 }

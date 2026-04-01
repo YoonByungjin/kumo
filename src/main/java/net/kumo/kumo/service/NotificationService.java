@@ -8,13 +8,17 @@ import net.kumo.kumo.domain.entity.Enum;
 import net.kumo.kumo.domain.entity.NotificationEntity;
 import net.kumo.kumo.domain.entity.UserEntity;
 import net.kumo.kumo.repository.NotificationRepository;
+import net.kumo.kumo.repository.OsakaGeocodedRepository;
+import net.kumo.kumo.repository.TokyoGeocodedRepository;
 import net.kumo.kumo.repository.UserRepository;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -30,6 +34,8 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private final MessageSource messageSource;
+    private final OsakaGeocodedRepository osakaGeocodedRepository;
+    private final TokyoGeocodedRepository tokyoGeocodedRepository;
 
     /**
      * 특정 사용자가 수신한 알림 목록 전체를 최신순으로 조회하며,
@@ -49,7 +55,8 @@ public class NotificationService {
                 .map(notif -> {
                     String translatedTitle;
                     String translatedContent;
-                    Object[] args = new Object[]{notif.getContent()};
+                    boolean isJa = locale.getLanguage().equals("ja");
+                    Object[] args = new Object[]{resolveTitleForLocale(notif, isJa)};
 
                     switch (notif.getNotifyType()) {
                         case APP_PASSED:
@@ -249,5 +256,54 @@ public class NotificationService {
             throw new SecurityException("권한 없음");
         }
         notification.setRead(true);
+    }
+
+    /**
+     * 알림의 content와 targetUrl을 바탕으로 locale에 맞는 공고 제목을 반환한다.
+     * 1순위: content의 "한국어|||일본어" 구분자에서 추출
+     * 2순위: targetUrl에서 id/source 파싱 후 DB에서 title_jp 직접 조회 (기존 알림 호환)
+     * 3순위: content 그대로 반환
+     */
+    private String resolveTitleForLocale(NotificationEntity notif, boolean isJa) {
+        String content = notif.getContent();
+        if (content != null && content.contains("|||")) {
+            String[] parts = content.split("\\|\\|\\|", 2);
+            return isJa ? parts[1] : parts[0];
+        }
+        if (isJa && notif.getTargetUrl() != null) {
+            String titleJp = lookupTitleJp(notif.getTargetUrl());
+            if (titleJp != null && !titleJp.isBlank()) {
+                return titleJp;
+            }
+        }
+        return content;
+    }
+
+    /**
+     * targetUrl(/map/jobs/detail?id=X&source=Y 또는 /Recruiter/editJobPosting?id=X&region=Y)에서
+     * id와 source를 파싱하여 해당 공고의 title_jp를 조회한다.
+     */
+    private String lookupTitleJp(String targetUrl) {
+        try {
+            String query = targetUrl.contains("?") ? targetUrl.split("\\?", 2)[1] : "";
+            Map<String, String> params = Arrays.stream(query.split("&"))
+                    .map(p -> p.split("=", 2))
+                    .filter(p -> p.length == 2)
+                    .collect(Collectors.toMap(p -> p[0], p -> p[1], (a, b) -> a));
+
+            String idStr = params.get("id");
+            String source = params.containsKey("source") ? params.get("source") : params.get("region");
+            if (idStr == null || source == null) return null;
+
+            Long id = Long.parseLong(idStr);
+            if ("OSAKA".equalsIgnoreCase(source)) {
+                return osakaGeocodedRepository.findById(id).map(e -> e.getTitleJp()).orElse(null);
+            } else if ("TOKYO".equalsIgnoreCase(source)) {
+                return tokyoGeocodedRepository.findById(id).map(e -> e.getTitleJp()).orElse(null);
+            }
+        } catch (Exception e) {
+            log.warn("title_jp 조회 실패: targetUrl={}", targetUrl, e);
+        }
+        return null;
     }
 }

@@ -46,11 +46,13 @@ function renderResume(data, container) {
     let html = '';
 
     if (data.profile) {
-        html += `<div class="resume-section"><h5><i class="bi bi-person-lines-fill me-2"></i>${appMsg.labelIntro} (<span class="text-primary">${data.profile.careerType || appMsg.notEntered}</span>)</h5><p class="text-secondary mb-0" style="line-height: 1.6; white-space: pre-wrap;">${data.profile.selfPr || appMsg.notEntered}</p></div>`;
+        const careerLabel = appMsg.careerMap[data.profile.careerType] || data.profile.careerType || appMsg.notEntered;
+        html += `<div class="resume-section"><h5><i class="bi bi-person-lines-fill me-2"></i>${appMsg.labelIntro} (<span class="text-primary">${careerLabel}</span>)</h5><p class="text-secondary mb-0" style="line-height: 1.6; white-space: pre-wrap;">${data.profile.selfPr || appMsg.notEntered}</p></div>`;
     }
 
     if (data.condition) {
-        html += `<div class="resume-section"><h5><i class="bi bi-check2-square me-2"></i>${appMsg.labelCondition}</h5><div class="spec-item"><span class="label">${appMsg.labelJob}</span> ${data.condition.desiredJob || appMsg.notEntered}</div><div class="spec-item"><span class="label">${appMsg.labelSalary}</span> ${data.condition.salaryType || ''} ${data.condition.desiredSalary || appMsg.notEntered}</div></div>`;
+        const salaryLabel = appMsg.salaryMap[data.condition.salaryType] || data.condition.salaryType || '';
+        html += `<div class="resume-section"><h5><i class="bi bi-check2-square me-2"></i>${appMsg.labelCondition}</h5><div class="spec-item"><span class="label">${appMsg.labelJob}</span> ${data.condition.desiredJob || appMsg.notEntered}</div><div class="spec-item"><span class="label">${appMsg.labelSalary}</span> ${salaryLabel} ${data.condition.desiredSalary || appMsg.notEntered}</div></div>`;
     }
 
     html += `<div class="resume-section"><h5><i class="bi bi-briefcase-fill me-2"></i>${appMsg.labelCareer}</h5>`;

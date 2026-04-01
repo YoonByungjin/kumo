@@ -62,6 +62,16 @@ public class ChatRoomEntity {
 
     private LocalDateTime lastMessageAt;
 
+    /** 구직자가 이 채팅방을 고정(핀)했는지 여부 */
+    @Column(name = "seeker_pinned", nullable = false)
+    @Builder.Default
+    private boolean seekerPinned = false;
+
+    /** 구인자가 이 채팅방을 고정(핀)했는지 여부 */
+    @Column(name = "recruiter_pinned", nullable = false)
+    @Builder.Default
+    private boolean recruiterPinned = false;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

@@ -138,7 +138,9 @@
                     </div>
 
                     <div class="text-center mb-5">
-                        <button type="submit" class="btn btn-primary kumo-btn-submit" th:text="#{post.btn.submit}">
+                        <input type="hidden" name="titleJp" id="titleJpHidden">
+                        <button type="submit" class="btn btn-primary kumo-btn-submit" th:text="#{post.btn.submit}"
+                                onclick="document.getElementById('titleJpHidden').value = document.querySelector('[name=title]').value">
                             등록
                         </button>
                     </div>

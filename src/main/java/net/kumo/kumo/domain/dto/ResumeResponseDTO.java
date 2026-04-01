@@ -35,10 +35,8 @@ public class ResumeResponseDTO {
         public static ProfileDTO from(SeekerProfileEntity entity) {
             if (entity == null) return null;
 
-            String typeStr = "NEWCOMER".equals(entity.getCareerType()) ? "신입" : "경력";
-
             return ProfileDTO.builder()
-                    .careerType(typeStr)
+                    .careerType(entity.getCareerType())
                     .selfPr(entity.getSelfPr())
                     .build();
         }
@@ -56,14 +54,9 @@ public class ResumeResponseDTO {
         public static ConditionDTO from(SeekerDesiredConditionEntity entity) {
             if (entity == null) return null;
 
-            String sType = entity.getSalaryType();
-            if ("HOURLY".equals(sType)) sType = "시급";
-            else if ("MONTHLY".equals(sType)) sType = "월급";
-            else if ("YEARLY".equals(sType)) sType = "연봉";
-
             return ConditionDTO.builder()
                     .desiredJob(entity.getDesiredJob())
-                    .salaryType(sType)
+                    .salaryType(entity.getSalaryType())
                     .desiredSalary(entity.getDesiredSalary())
                     .build();
         }

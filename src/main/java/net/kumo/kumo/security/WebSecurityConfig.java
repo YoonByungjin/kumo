@@ -55,6 +55,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                         .requestMatchers("/map_non_login_view", "/FindId", "/FindPw", "/findIdProc", "/nickname",
                                 "/changePw", "/map/main", "/map/job-list-view").permitAll()
 
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/Recruiter/**").hasAnyRole("RECRUITER", "ADMIN")
                         .requestMatchers("/Seeker/**").hasAnyRole("SEEKER", "ADMIN")
 
@@ -92,5 +93,6 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     @Bean
     public PasswordEncoder passwordEncoder() {
 		return org.springframework.security.crypto.password.NoOpPasswordEncoder.getInstance();
+		//return new BCryptPasswordEncoder();
     }
 }

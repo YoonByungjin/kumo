@@ -54,7 +54,9 @@
 
     <div class="chat-list">
         <div th:each="room : ${chatRooms}" th:data-unread="${room.hasUnread}"
-             th:data-room-id="${room.roomId}" class="chat-item"
+             th:data-room-id="${room.roomId}"
+             th:classappend="${room.pinned ? ' is-pinned' : ''}"
+             class="chat-item"
              th:onclick="|enterRoom(${room.roomId})|">
             <div class="avatar-wrapper">
                 <img th:src="${room.opponentProfileImg ?: '/images/common/default_profile.png'}"
@@ -78,7 +80,9 @@
 
                     <div class="options-dropdown">
                         <div class="option-item" onclick="togglePinRoom(event, this)">
-                            <i class="fa-solid fa-thumbtack option-icon"></i> <span class="pin-text" th:text="#{chat.list.option.pin}">고정</span>
+                            <i class="fa-solid fa-thumbtack option-icon"></i>
+                            <span class="pin-text"
+                                  th:text="${room.pinned ? #messages.msg('chat.list.option.unpin') : #messages.msg('chat.list.option.pin')}">고정</span>
                         </div>
 
                         <div class="option-item delete" onclick="deleteRoom(event, this)">

@@ -1,6 +1,7 @@
 package net.kumo.kumo.service;
 
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -151,6 +152,9 @@ public class ChatService {
             ChatMessageEntity lastMsg = chatMessageRepository.findFirstByRoomOrderByCreatedAtDesc(room);
             boolean hasUnreadFlag = chatMessageRepository.existsByRoomAndSender_UserIdNotAndIsReadFalse(room, userId);
 
+            boolean isPinned = room.getSeeker().getUserId().equals(userId)
+                    ? room.isSeekerPinned() : room.isRecruiterPinned();
+
             return ChatRoomListDTO.builder()
                     .roomId(room.getId())
                     .opponentNickname(opponent.getNickname())
@@ -161,8 +165,11 @@ public class ChatService {
                     .lastTime(
                             lastMsg != null ? lastMsg.getCreatedAt().format(DateTimeFormatter.ofPattern("HH:mm")) : "")
                     .hasUnread(hasUnreadFlag)
+                    .pinned(isPinned)
                     .build();
-        }).collect(Collectors.toList());
+        })
+        .sorted(Comparator.comparing(ChatRoomListDTO::isPinned).reversed())
+        .collect(Collectors.toList());
     }
 
     /**
@@ -174,6 +181,52 @@ public class ChatService {
      */
     public void processLiveReadSignal(Long roomId, Long readerId) {
         chatMessageRepository.markMessagesAsRead(roomId, readerId);
+    }
+
+    /**
+     * 요청한 사용자가 해당 채팅방의 참여자인지 검증한 뒤, 메시지를 먼저 삭제하고 채팅방을 삭제합니다.
+     *
+     * @param roomId 삭제할 채팅방 식별자
+     * @param userId 삭제를 요청한 사용자 식별자
+     * @throws SecurityException 해당 방의 참여자가 아닌 경우
+     */
+    @Transactional
+    public void deleteRoom(Long roomId, Long userId) {
+        ChatRoomEntity room = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채팅방입니다."));
+
+        boolean isParticipant = room.getSeeker().getUserId().equals(userId)
+                || room.getRecruiter().getUserId().equals(userId);
+        if (!isParticipant) {
+            throw new SecurityException("채팅방 삭제 권한이 없습니다.");
+        }
+
+        chatMessageRepository.deleteByRoom(room);
+        chatRoomRepository.delete(room);
+    }
+
+    /**
+     * 특정 사용자의 채팅방 고정(핀) 상태를 토글합니다.
+     *
+     * @param roomId 대상 채팅방 식별자
+     * @param userId 요청한 사용자 식별자
+     * @return 토글 후 고정 상태 (true: 고정됨)
+     * @throws SecurityException 해당 방의 참여자가 아닌 경우
+     */
+    @Transactional
+    public boolean togglePin(Long roomId, Long userId) {
+        ChatRoomEntity room = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채팅방입니다."));
+
+        if (room.getSeeker().getUserId().equals(userId)) {
+            room.setSeekerPinned(!room.isSeekerPinned());
+            return room.isSeekerPinned();
+        } else if (room.getRecruiter().getUserId().equals(userId)) {
+            room.setRecruiterPinned(!room.isRecruiterPinned());
+            return room.isRecruiterPinned();
+        } else {
+            throw new SecurityException("채팅방 접근 권한이 없습니다.");
+        }
     }
 
     /**

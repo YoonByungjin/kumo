@@ -4,21 +4,33 @@
   "description": "<div align=\"center\">",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "e2e:headed": "playwright test --headed",
+    "e2e:debug": "playwright test --debug",
+    "e2e:auth": "playwright test --project=nonlogin",
+    "e2e:seeker": "playwright test --project=seeker",
+    "e2e:recruiter": "playwright test --project=recruiter",
+    "e2e:admin": "playwright test --project=admin",
+    "e2e:report": "playwright show-report",
+    "e2e:codegen": "playwright codegen http://localhost:8080"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/JUNUHAM/Kumo.git"
+    "url": "git+https://github.com/YoonByungjin/kumo.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/JUNUHAM/Kumo/issues"
+    "url": "https://github.com/YoonByungjin/kumo/issues"
   },
-  "homepage": "https://github.com/JUNUHAM/Kumo#readme",
+  "homepage": "https://github.com/YoonByungjin/kumo#readme",
   "devDependencies": {
-    "@playwright/test": "^1.58.2"
+    "@playwright/test": "^1.58.2",
+    "typescript": "^5.0.0",
+    "dotenv": "^16.0.0"
   }
 }

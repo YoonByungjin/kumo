@@ -70,4 +70,11 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessageEntity, 
      * @param user 삭제할 작성자 엔티티
      */
     void deleteBySender(UserEntity user);
+
+    /**
+     * 채팅방 삭제 시 해당 방의 모든 메시지를 선행 삭제합니다.
+     *
+     * @param room 삭제할 채팅방 엔티티
+     */
+    void deleteByRoom(ChatRoomEntity room);
 }

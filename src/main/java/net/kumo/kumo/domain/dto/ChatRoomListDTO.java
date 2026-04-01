@@ -18,5 +18,6 @@ public class ChatRoomListDTO {
     private String lastMessage;
     private String lastTime;
     private boolean hasUnread;
+    private boolean pinned;
 
 }

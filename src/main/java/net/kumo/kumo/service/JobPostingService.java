@@ -565,12 +565,12 @@ public class JobPostingService {
             TokyoGeocodedEntity entity = tokyoGeocodedRepository.findByDatanum(datanum)
                     .orElseThrow(() -> new IllegalArgumentException("공고를 찾을 수 없습니다."));
             entity.setStatus(JobStatus.CLOSED);
-            title = entity.getTitle();
+            title = buildBilingualTitle(entity.getTitle(), entity.getTitleJp());
         } else {
             OsakaGeocodedEntity entity = osakaGeocodedRepository.findByDatanum(datanum)
                     .orElseThrow(() -> new IllegalArgumentException("공고를 찾을 수 없습니다."));
             entity.setStatus(JobStatus.CLOSED);
-            title = entity.getTitle();
+            title = buildBilingualTitle(entity.getTitle(), entity.getTitleJp());
         }
 
         List<ApplicationEntity> applications = applicationRepository
@@ -794,13 +794,18 @@ public class JobPostingService {
             String jobTitle = "공고";
             if ("TOKYO".equalsIgnoreCase(application.getTargetSource())) {
                 jobTitle = tokyoGeocodedRepository.findById(application.getTargetPostId())
-                        .map(TokyoGeocodedEntity::getTitle).orElse("공고");
+                        .map(e -> buildBilingualTitle(e.getTitle(), e.getTitleJp())).orElse("공고");
             } else if ("OSAKA".equalsIgnoreCase(application.getTargetSource())) {
                 jobTitle = osakaGeocodedRepository.findById(application.getTargetPostId())
-                        .map(OsakaGeocodedEntity::getTitle).orElse("공고");
+                        .map(e -> buildBilingualTitle(e.getTitle(), e.getTitleJp())).orElse("공고");
             }
 
             notificationService.sendAppStatusNotification(application.getSeeker(), status, jobTitle);
         }
+    }
+
+    private String buildBilingualTitle(String ko, String ja) {
+        if (ja == null || ja.isBlank()) return ko;
+        return ko + "|||" + ja;
     }
 }

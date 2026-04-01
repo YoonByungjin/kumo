@@ -227,7 +227,17 @@
         attending:      /*[[#{app.info.resume.attending}]]*/ '재학',
         expected:       /*[[#{app.info.resume.expected}]]*/ '졸업예정',
         dropout:        /*[[#{app.info.resume.dropout}]]*/ '중퇴',
-        notEntered:     /*[[#{app.info.resume.not_entered}]]*/ '미입력'
+        notEntered:     /*[[#{app.info.resume.not_entered}]]*/ '미입력',
+        careerMap: {
+            EXPERIENCED: /*[[${#locale.language == 'ja' ? '経験者' : '경력'}]]*/ '경력',
+            NEWCOMER:    /*[[${#locale.language == 'ja' ? '新入' : '신입'}]]*/ '신입'
+        },
+        salaryMap: {
+            HOURLY:  /*[[${#locale.language == 'ja' ? '時給' : '시급'}]]*/ '시급',
+            MONTHLY: /*[[${#locale.language == 'ja' ? '月給' : '월급'}]]*/ '월급',
+            YEARLY:  /*[[${#locale.language == 'ja' ? '年俸' : '연봉'}]]*/ '연봉',
+            DAILY:   /*[[${#locale.language == 'ja' ? '日給' : '일급'}]]*/ '일급'
+        }
     };
     /* ]]> */
 </script>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko"
+<html th:lang="${lang}"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
@@ -18,7 +18,7 @@
     <script th:inline="javascript">
         /* <![CDATA[ */
         const isUserLoggedIn = /*[[${#authorization.expression('isAuthenticated()')}]]*/ false;
-        const currentLang = (typeof window.getKumoLang === 'function') ? window.getKumoLang() : 'ko';
+        const currentLang = document.documentElement.lang === 'ja' ? 'ja' : 'kr';
 
         const MESSAGES = {
             loginRequired: /*[[#{job.msg.loginRequired}]]*/ '로그인이 필요합니다.',
