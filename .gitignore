@@ -52,3 +52,6 @@ node_modules/
 chat_uploads/
 my_commits.txt
 my_commits_detail.txt
+
+## 어플리케이션
+application.properties

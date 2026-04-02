@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.Period;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -22,6 +23,9 @@ public class GlobalControllerAdvice {
     @Autowired
     private RecruiterService rs;
 
+    @Value("${kumo.google.maps.keys}")
+    private String googleMapsKey;
+
     /**
      * 현재 인증된 사용자의 기본 정보, 나이, 생년월일 분리 데이터,
      * 프로필 이미지 경로 등을 가공하여 Model에 공통 속성으로 주입합니다.
@@ -31,6 +35,8 @@ public class GlobalControllerAdvice {
      */
     @ModelAttribute
     public void addAttributes(Model model, Principal principal) {
+        model.addAttribute("googleMapsKey", googleMapsKey);
+
         if (principal == null) {
             return;
         }
