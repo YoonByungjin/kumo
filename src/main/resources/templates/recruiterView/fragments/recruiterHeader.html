@@ -7,7 +7,7 @@
     <header class="authenticated-header">
       <link
         rel="stylesheet"
-        th:href="@{/css/RecruiterFragments/RecruiterHeader.css}"
+        th:href="@{/css/recruiter/recruiterHeader.css}"
         sec:authorize="isAuthenticated()"
       />
 
@@ -183,6 +183,6 @@
     </script>
 
     <!-- 나머지 헤더 로직은 외부 JS로 분리 -->
-    <script th:src="@{/js/RecruiterFragments/recruiterHeader.js}"></script>
+    <script th:src="@{/js/recruiter/recruiterHeader.js}"></script>
   </div>
 </html>
