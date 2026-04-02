@@ -23,6 +23,10 @@ const AppState = {
 };
 
 // ============================================================
+// Google Maps API 콜백 - ready보다 먼저 호출될 수 있으므로 전역에 등록
+window.initMap = function() { MapManager.init(); };
+
+// ============================================================
 // [2] 초기화 및 이벤트 바인딩 (Init & Events)
 // ============================================================
 $(document).ready(function() {
@@ -40,10 +44,7 @@ $(document).ready(function() {
         }
     });
 
-    // 지도 초기화 (Google Maps API 콜백으로 실행됨)
-    window.initMap = MapManager.init;
-
-    $(".btn-close-card").on('click', function () {
+$(".btn-close-card").on('click', function () {
         UIManager.closeJobCard();
     });
 
