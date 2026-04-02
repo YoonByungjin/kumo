@@ -363,10 +363,10 @@ public class ChatService {
         try {
             if ("OSAKA".equalsIgnoreCase(source)) {
                 return osakaGeocodedRepository.findById(postId)
-                        .map(e -> titlePrefix + e.getTitle()).orElse("");
+                        .map(e -> titlePrefix + (isJa ? e.getTitleJp() : e.getTitle())).orElse("");
             } else if ("TOKYO".equalsIgnoreCase(source)) {
                 return tokyoGeocodedRepository.findById(postId)
-                        .map(e -> titlePrefix + e.getTitle()).orElse("");
+                        .map(e -> titlePrefix + (isJa ? e.getTitleJp() : e.getTitle())).orElse("");
             }
         } catch (Exception ignored) {}
         return "";
