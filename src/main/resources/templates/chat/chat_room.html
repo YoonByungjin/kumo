@@ -30,7 +30,12 @@
             <i class="fa-solid fa-chevron-left"></i>
         </a>
 
-        <span class="header-store-name" th:text="${roomName}">상대방 이름</span>
+        <div class="header-center">
+            <span class="header-store-name" th:text="${roomName}">상대방 이름</span>
+            <span class="header-job-context"
+                  th:if="${jobContext != null and !#strings.isEmpty(jobContext)}"
+                  th:text="${jobContext}"></span>
+        </div>
 
         <div class="header-translate-btn">
             <img th:src="@{/images/icons/chat_room_translate.svg}" class="translate-icon-img" alt="번역">

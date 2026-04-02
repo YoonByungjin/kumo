@@ -1,7 +1,7 @@
 package net.kumo.kumo.util;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,11 +19,11 @@ import java.util.UUID;
  * 로컬 파일 I/O 시스템 연산을 공통적으로 수행하는 유틸리티 컴포넌트입니다.
  */
 @Slf4j
-@RequiredArgsConstructor
 @Component
 public class FileManager {
 
-    private final String UPLOAD_DIR = System.getProperty("user.dir") + "/src/main/resources/static/uploads/";
+    @Value("${file.upload.dir}")
+    private String UPLOAD_DIR;
 
     /**
      * 클라이언트로부터 업로드된 원본 파일을 물리적 스토리지 폴더에 안전하게 저장하고,

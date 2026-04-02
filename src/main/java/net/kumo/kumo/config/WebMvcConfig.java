@@ -25,11 +25,20 @@ public class WebMvcConfig implements WebMvcConfigurer {
      */
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // 공통 업로드 파일 리소스 매핑
+        // 구인 공고 이미지: /images/uploadFile/** → {uploadDir}/
         registry.addResourceHandler("/images/uploadFile/**")
                 .addResourceLocations("file:" + uploadDir);
 
-        // 채팅방 전용 첨부파일 및 이미지 리소스 매핑
+        // 구직자 프로필 이미지 + 포트폴리오: /uploads/** → {uploadDir}/
+        // (profileImage/, evidenceFiles/ 등 하위 폴더 포함)
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:" + uploadDir);
+
+        // 리크루터 프로필 이미지: /upload/profiles/** → {uploadDir}/profiles/
+        registry.addResourceHandler("/upload/profiles/**")
+                .addResourceLocations("file:" + uploadDir + "profiles/");
+
+        // 채팅방 첨부파일: /chat_images/** → {uploadDir}/chat_uploads/
         registry.addResourceHandler("/chat_images/**")
                 .addResourceLocations("file:" + chatUploadDir);
     }

@@ -2,7 +2,9 @@ package net.kumo.kumo.service;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -20,6 +22,8 @@ import net.kumo.kumo.domain.entity.Enum.MessageType;
 import net.kumo.kumo.domain.entity.UserEntity;
 import net.kumo.kumo.repository.ChatMessageRepository;
 import net.kumo.kumo.repository.ChatRoomRepository;
+import net.kumo.kumo.repository.OsakaGeocodedRepository;
+import net.kumo.kumo.repository.TokyoGeocodedRepository;
 import net.kumo.kumo.repository.UserRepository;
 
 /**
@@ -35,6 +39,8 @@ public class ChatService {
     private final ChatMessageRepository chatMessageRepository;
     private final UserRepository userRepository;
     private final MessageSource messageSource;
+    private final OsakaGeocodedRepository osakaGeocodedRepository;
+    private final TokyoGeocodedRepository tokyoGeocodedRepository;
 
     /**
      * 구직자와 구인자 간의 채팅방 세션을 생성하거나,
@@ -155,6 +161,11 @@ public class ChatService {
             boolean isPinned = room.getSeeker().getUserId().equals(userId)
                     ? room.isSeekerPinned() : room.isRecruiterPinned();
 
+            String jobContext = resolveJobContext(room.getTargetSource(), room.getTargetPostId());
+
+            java.time.LocalDateTime lastMsgAt = lastMsg != null ? lastMsg.getCreatedAt() : null;
+            int roomUnreadCount = chatMessageRepository.countUnreadByRoomForUser(room.getId(), userId);
+
             return ChatRoomListDTO.builder()
                     .roomId(room.getId())
                     .opponentNickname(opponent.getNickname())
@@ -162,13 +173,18 @@ public class ChatService {
                     .lastMessage(lastMsg != null ? lastMsg.getContent()
                             : messageSource.getMessage("chat.last.message.empty", null,
                             LocaleContextHolder.getLocale()))
-                    .lastTime(
-                            lastMsg != null ? lastMsg.getCreatedAt().format(DateTimeFormatter.ofPattern("HH:mm")) : "")
+                    .lastTime(lastMsg != null ? lastMsg.getCreatedAt().format(DateTimeFormatter.ofPattern("HH:mm")) : "")
                     .hasUnread(hasUnreadFlag)
                     .pinned(isPinned)
+                    .jobContext(jobContext)
+                    .lastMessageAt(lastMsgAt)
+                    .roomUnreadCount(roomUnreadCount)
                     .build();
         })
-        .sorted(Comparator.comparing(ChatRoomListDTO::isPinned).reversed())
+        // 핀고정 우선, 동일 그룹 내에서는 최신 메시지 순 (null은 맨 뒤)
+        .sorted(Comparator.comparing(ChatRoomListDTO::isPinned).reversed()
+                .thenComparing(Comparator.comparing(ChatRoomListDTO::getLastMessageAt,
+                        Comparator.nullsLast(Comparator.reverseOrder()))))
         .collect(Collectors.toList());
     }
 
@@ -273,5 +289,86 @@ public class ChatService {
                         entity.getCreatedAt().format(java.time.format.DateTimeFormatter.ofPattern(datePattern, locale)))
                 .isRead(entity.getIsRead())
                 .build();
+    }
+
+    /**
+     * targetSource와 targetPostId를 기반으로 채팅 목록 서브타이틀용 공고명을 반환합니다.
+     * SCOUT이면 고정 레이블, OSAKA/TOKYO면 해당 공고의 제목을 조회합니다.
+     */
+    /**
+     * 메시지 전송 후 /sub/chat/user/ 채널에 브로드캐스팅할 DTO를
+     * 트랜잭션 내에서 안전하게 생성합니다. (LazyInitializationException 방지)
+     *
+     * @param savedMessage 저장된 메시지 DTO
+     * @return key=수신자 userId, value=해당 수신자용 ChatMessageDTO
+     */
+    @Transactional(readOnly = true)
+    public Map<Long, ChatMessageDTO> buildUserChannelPayloads(ChatMessageDTO savedMessage) {
+        ChatRoomEntity room = chatRoomRepository.findById(savedMessage.getRoomId())
+                .orElseThrow(() -> new IllegalArgumentException("채팅방 없음"));
+
+        UserEntity seeker    = room.getSeeker();
+        UserEntity recruiter = room.getRecruiter();
+        Long seekerId    = seeker.getUserId();
+        Long recruiterId = recruiter.getUserId();
+
+        String seekerImg = (seeker.getProfileImage() != null && seeker.getProfileImage().getFileUrl() != null)
+                ? seeker.getProfileImage().getFileUrl() : "/images/common/default_profile.png";
+        String recruiterImg = (recruiter.getProfileImage() != null && recruiter.getProfileImage().getFileUrl() != null)
+                ? recruiter.getProfileImage().getFileUrl() : "/images/common/default_profile.png";
+
+        String jobContext = resolveJobContext(room.getTargetSource(), room.getTargetPostId());
+
+        Map<Long, ChatMessageDTO> result = new HashMap<>();
+
+        Long roomId = savedMessage.getRoomId();
+
+        // 시커 채널: 상대방은 리크루터
+        result.put(seekerId, ChatMessageDTO.builder()
+                .roomId(roomId).senderId(savedMessage.getSenderId())
+                .content(savedMessage.getContent()).messageType(savedMessage.getMessageType())
+                .createdAt(savedMessage.getCreatedAt())
+                .unreadCount(chatMessageRepository.countUnreadMessagesForUser(seekerId))
+                .roomUnreadCount(chatMessageRepository.countUnreadByRoomForUser(roomId, seekerId))
+                .opponentNickname(recruiter.getNickname())
+                .opponentProfileImg(recruiterImg)
+                .jobContext(jobContext)
+                .build());
+
+        // 리크루터 채널: 상대방은 시커
+        result.put(recruiterId, ChatMessageDTO.builder()
+                .roomId(roomId).senderId(savedMessage.getSenderId())
+                .content(savedMessage.getContent()).messageType(savedMessage.getMessageType())
+                .createdAt(savedMessage.getCreatedAt())
+                .unreadCount(chatMessageRepository.countUnreadMessagesForUser(recruiterId))
+                .roomUnreadCount(chatMessageRepository.countUnreadByRoomForUser(roomId, recruiterId))
+                .opponentNickname(seeker.getNickname())
+                .opponentProfileImg(seekerImg)
+                .jobContext(jobContext)
+                .build());
+
+        return result;
+    }
+
+    public String resolveJobContext(String source, Long postId) {
+        java.util.Locale locale = LocaleContextHolder.getLocale();
+        boolean isJa = "ja".equals(locale.getLanguage());
+
+        if ("SCOUT".equalsIgnoreCase(source)) {
+            return isJa ? "スカウト専用チャットルーム" : "스카우트 전용 채팅방";
+        }
+
+        String titlePrefix = isJa ? "求人タイトル : " : "게시글 제목 : ";
+
+        try {
+            if ("OSAKA".equalsIgnoreCase(source)) {
+                return osakaGeocodedRepository.findById(postId)
+                        .map(e -> titlePrefix + e.getTitle()).orElse("");
+            } else if ("TOKYO".equalsIgnoreCase(source)) {
+                return tokyoGeocodedRepository.findById(postId)
+                        .map(e -> titlePrefix + e.getTitle()).orElse("");
+            }
+        } catch (Exception ignored) {}
+        return "";
     }
 }

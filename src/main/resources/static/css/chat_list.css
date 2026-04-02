@@ -278,6 +278,33 @@ body.dark-mode .tab-menu {
     background-color: #f4f8ff;
 }
 
+.room-unread-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fa5252;
+    color: #fff;
+    border-radius: 10px;
+    min-width: 18px;
+    height: 18px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 0 5px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.chat-job-context {
+    font-size: 11px;
+    color: #7db4e6;
+    margin: 0 0 2px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+body.dark-mode .chat-job-context { color: #7db4e6; }
+
 .chat-preview {
     font-size: 13px;
     color: #555;

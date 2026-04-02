@@ -27,5 +27,10 @@
     </button>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+  <script th:inline="javascript">
+    window.SIDEBAR_USER_ID = /*[[${#authentication.principal.userId}]]*/ null;
+  </script>
   <script th:src="@{/js/recruiter/rightSidebar.js}"></script>
 </aside>

@@ -114,6 +114,9 @@ public class ChatController {
         List<net.kumo.kumo.domain.dto.ChatMessageDTO> history = chatService.getMessageHistory(roomId, userId, lang);
         model.addAttribute("chatHistory", history);
 
+        String jobContext = chatService.resolveJobContext(room.getTargetSource(), room.getTargetPostId());
+        model.addAttribute("jobContext", jobContext);
+
         model.addAttribute("roomId", roomId);
         model.addAttribute("userId", userId);
         model.addAttribute("lang", lang);
@@ -209,14 +212,12 @@ public class ChatController {
         messagingTemplate.convertAndSend("/sub/chat/room/" + savedMessage.getRoomId(), savedMessage);
 
         try {
-            ChatRoomEntity room = chatService.getChatRoom(savedMessage.getRoomId());
-            Long seekerId = room.getSeeker().getUserId();
-            Long recruiterId = room.getRecruiter().getUserId();
-
-            messagingTemplate.convertAndSend("/sub/chat/user/" + seekerId, savedMessage);
-            messagingTemplate.convertAndSend("/sub/chat/user/" + recruiterId, savedMessage);
+            // 트랜잭션 내에서 안전하게 엔티티 lazy 필드 접근 후 DTO 생성
+            java.util.Map<Long, ChatMessageDTO> payloads = chatService.buildUserChannelPayloads(savedMessage);
+            payloads.forEach((userId, dto) ->
+                    messagingTemplate.convertAndSend("/sub/chat/user/" + userId, dto));
         } catch (Exception e) {
-            System.out.println("[ChatSystem] 사용자 채팅 목록 실시간 갱신 브로드캐스팅 실패: " + e.getMessage());
+            log.error("[ChatSystem] 사용자 채팅 목록 실시간 갱신 실패: {}", e.getMessage(), e);
         }
     }
 
@@ -230,6 +231,12 @@ public class ChatController {
     public void processRead(ChatMessageDTO readSignal) {
         chatService.processLiveReadSignal(readSignal.getRoomId(), readSignal.getSenderId());
         messagingTemplate.convertAndSend("/sub/chat/room/" + readSignal.getRoomId(), readSignal);
+        messagingTemplate.convertAndSend("/sub/chat/user/" + readSignal.getSenderId(),
+                ChatMessageDTO.builder()
+                        .roomId(readSignal.getRoomId())
+                        .messageType("READ")
+                        .unreadCount(chatService.getUnreadMessageCount(readSignal.getSenderId()))
+                        .build());
     }
 
     /**

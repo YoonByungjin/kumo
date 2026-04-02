@@ -34,6 +34,10 @@ function enterRoom(roomId) {
     const currentLang = document.documentElement.lang === 'ja' ? 'ja-JP' : 'ko-KR';
 
     if (userId) {
+        // 채팅방 입장 시 해당 방 뱃지 즉시 0으로 리셋
+        const roomEl = document.querySelector(`.chat-item[data-room-id="${roomId}"]`);
+        if (roomEl) updateRoomBadge(roomEl, 0);
+
         location.href = `/chat/room/${roomId}?userId=${userId}&lang=${currentLang}`;
     } else {
         const msg = (window.CHAT_LANG && window.CHAT_LANG.noLogin) ? window.CHAT_LANG.noLogin : '로그인이 필요합니다.';
@@ -88,12 +92,13 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 /**
- * 렌더링된 각 채팅방 아이템들의 데이터 속성을 확인하여
- * 미확인(읽지 않음) 뱃지 UI를 초기화합니다.
+ * 렌더링된 각 채팅방 아이템들의 data-unread-count 속성을 읽어
+ * 이름 옆 숫자 뱃지를 초기화합니다.
  */
 function initializeUnreadBadges() {
     document.querySelectorAll('.chat-item').forEach(room => {
-        toggleUnreadBadge(room, room.getAttribute('data-unread') === 'true');
+        const count = parseInt(room.getAttribute('data-unread-count') || '0', 10);
+        updateRoomBadge(room, count);
     });
 }
 
@@ -219,8 +224,11 @@ function connectChatList() {
     stompListClient.debug = null;
 
     stompListClient.connect({}, function () {
+        console.log('[ChatList] WebSocket 연결 성공. userId=' + myUserId);
         stompListClient.subscribe('/sub/chat/user/' + myUserId, function (messageOutput) {
             const msg = JSON.parse(messageOutput.body);
+            console.log('[ChatList] 수신:', msg);
+
             if (msg.messageType === 'SYSTEM' && msg.content === 'ROOM_DELETED') {
                 const roomEl = document.querySelector(`.chat-item[data-room-id="${msg.roomId}"]`);
                 if (roomEl) {
@@ -233,7 +241,8 @@ function connectChatList() {
             }
             updateChatListUI(msg);
         });
-    }, function () {
+    }, function (err) {
+        console.warn('[ChatList] WebSocket 연결 실패, 3초 후 재시도:', err);
         setTimeout(connectChatList, 3000);
     });
 }
@@ -245,59 +254,159 @@ function connectChatList() {
  * @param {Object} newMsg 웹소켓을 통해 수신된 신규 메시지 DTO 데이터
  */
 function updateChatListUI(newMsg) {
-    const targetRoom = document.querySelector(`.chat-item[data-room-id="${newMsg.roomId}"]`);
-    if (targetRoom) {
-        const preview = targetRoom.querySelector('.chat-preview');
-        const timeSpan = targetRoom.querySelector('.chat-time');
+    const container = document.querySelector('.chat-list');
+    const isUnread = (String(newMsg.senderId) !== String(window.MY_USER_ID));
 
-        if (preview) {
-            if (newMsg.messageType === 'IMAGE') preview.innerText = window.CHAT_LANG.image;
-            else if (newMsg.messageType === 'FILE') preview.innerText = window.CHAT_LANG.file;
-            else preview.innerText = newMsg.content;
+    let targetRoom = document.querySelector(`.chat-item[data-room-id="${newMsg.roomId}"]`);
+
+    if (!targetRoom) {
+        // 신규 채팅방: DOM에 아이템 없음 → 직접 생성
+        if (!newMsg.opponentNickname) {
+            console.warn('[ChatList] 신규 채팅방이지만 opponentNickname 없음 → 스킵', newMsg);
+            return;
         }
+        console.log('[ChatList] 신규 채팅방 아이템 생성:', newMsg.roomId, newMsg.opponentNickname);
+        targetRoom = createChatItem(newMsg, isUnread);
+        container.prepend(targetRoom);
+        return;
+    }
 
-        if (timeSpan && newMsg.createdAt) {
-            let timeStr = newMsg.createdAt.includes(' ') ? newMsg.createdAt.split(' ')[1].substring(0, 5) : newMsg.createdAt.substring(0, 5);
-            timeSpan.innerText = timeStr;
+    // 기존 채팅방 업데이트
+    const preview = targetRoom.querySelector('.chat-preview');
+    const timeSpan = targetRoom.querySelector('.chat-time');
+
+    if (preview) {
+        if (newMsg.messageType === 'IMAGE') preview.innerText = window.CHAT_LANG.image;
+        else if (newMsg.messageType === 'FILE') preview.innerText = window.CHAT_LANG.file;
+        else preview.innerText = newMsg.content;
+    }
+
+    if (timeSpan && newMsg.createdAt) {
+        let timeStr = newMsg.createdAt.includes(' ') ? newMsg.createdAt.split(' ')[1].substring(0, 5) : newMsg.createdAt.substring(0, 5);
+        timeSpan.innerText = timeStr;
+    }
+
+    // 서버에서 내려온 정확한 방별 미읽음 수로 뱃지 갱신
+    const roomCount = (newMsg.roomUnreadCount != null)
+        ? newMsg.roomUnreadCount
+        : (isUnread ? (parseInt(targetRoom.getAttribute('data-unread-count') || '0', 10) + 1) : 0);
+    updateRoomBadge(targetRoom, roomCount);
+
+    try {
+        if (window.parent && typeof window.parent.updateSidebarBadge === 'function') {
+            window.parent.updateSidebarBadge();
         }
+    } catch(e) {}
 
-        const isUnread = (String(newMsg.senderId) !== String(window.MY_USER_ID));
-        targetRoom.setAttribute('data-unread', String(isUnread));
-        toggleUnreadBadge(targetRoom, isUnread);
-
-        try {
-            if (window.parent && typeof window.parent.updateSidebarBadge === 'function') {
-                window.parent.updateSidebarBadge();
-            }
-        } catch(e) {}
-
-
-        const container = document.querySelector('.chat-list');
-        if (!targetRoom.classList.contains('is-pinned')) {
-            container.prepend(targetRoom);
-        }
+    if (!targetRoom.classList.contains('is-pinned')) {
+        container.prepend(targetRoom);
     }
 }
 
 /**
- * 특정 채팅방 아이템에 미확인(읽지 않음) 상태를 나타내는 빨간색 점(뱃지) UI를 추가하거나 제거합니다.
+ * 신규 채팅방 아이템 DOM 요소를 동적으로 생성하여 반환합니다.
+ *
+ * @param {Object} msg  웹소켓으로 수신된 메시지 DTO
+ * @param {boolean} isUnread 미확인 여부
+ * @returns {HTMLElement}
+ */
+function createChatItem(msg, isUnread) {
+    const profileImg = msg.opponentProfileImg || '/images/common/default_profile.png';
+    const timeStr = msg.createdAt
+        ? (msg.createdAt.includes(' ') ? msg.createdAt.split(' ')[1].substring(0, 5) : msg.createdAt.substring(0, 5))
+        : '';
+    let previewText = msg.content || '';
+    if (msg.messageType === 'IMAGE') previewText = window.CHAT_LANG.image || '(사진)';
+    else if (msg.messageType === 'FILE') previewText = window.CHAT_LANG.file || '(파일)';
+
+    const pinLabel  = window.CHAT_LANG.pin   || '고정';
+    const unpinLabel= window.CHAT_LANG.unpin || '해제';
+
+    const roomCount = (msg.roomUnreadCount != null) ? msg.roomUnreadCount : (isUnread ? 1 : 0);
+
+    const item = document.createElement('div');
+    item.className = 'chat-item';
+    item.setAttribute('data-room-id', msg.roomId);
+    item.setAttribute('data-unread', String(isUnread));
+    item.setAttribute('data-unread-count', String(roomCount));
+    item.setAttribute('onclick', `enterRoom(${msg.roomId})`);
+
+    const jobContextHtml = (msg.jobContext && msg.jobContext.trim())
+        ? `<p class="chat-job-context">${escapeHtml(msg.jobContext)}</p>` : '';
+
+    item.innerHTML = `
+        <div class="avatar-wrapper">
+            <img src="${escapeHtml(profileImg)}" class="avatar-img" alt="프로필" style="object-fit: cover;">
+        </div>
+        <div class="chat-content">
+            <div class="chat-name-row">
+                <span class="chat-name">${escapeHtml(msg.opponentNickname)}</span>
+                <i class="fa-solid fa-thumbtack pin-icon"></i>
+            </div>
+            ${jobContextHtml}
+            <p class="chat-preview">${escapeHtml(previewText)}</p>
+        </div>
+        <div class="chat-info">
+            <span class="chat-time">${escapeHtml(timeStr)}</span>
+            <div class="chat-options">
+                <i class="fa-solid fa-ellipsis-vertical menu-dots options-icon"
+                   onclick="toggleOptionsMenu(event, this)"></i>
+                <div class="options-dropdown">
+                    <div class="option-item" onclick="togglePinRoom(event, this)">
+                        <i class="fa-solid fa-thumbtack option-icon"></i>
+                        <span class="pin-text">${escapeHtml(pinLabel)}</span>
+                    </div>
+                    <div class="option-item delete" onclick="deleteRoom(event, this)">
+                        <i class="fa-solid fa-trash-can option-icon"></i>
+                        <span>삭제</span>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+
+    updateRoomBadge(item, roomCount);
+    return item;
+}
+
+/**
+ * XSS 방지를 위해 문자열의 HTML 특수문자를 이스케이프합니다.
+ * @param {string} str
+ * @returns {string}
+ */
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+/**
+ * 채팅방 아이템의 이름 옆 숫자 뱃지를 갱신합니다.
+ * count > 0 이면 뱃지 표시, 0 이면 제거합니다.
  *
  * @param {HTMLElement} roomElement 대상 채팅방 아이템 DOM 요소
- * @param {boolean} isUnread 미확인 메시지 존재 여부
+ * @param {number} count 미확인 메시지 수
  */
-function toggleUnreadBadge(roomElement, isUnread) {
-    const infoDiv = roomElement.querySelector('.chat-info');
-    if (!infoDiv) return;
-    let badge = infoDiv.querySelector('.unread-dot');
+function updateRoomBadge(roomElement, count) {
+    const nameRow = roomElement.querySelector('.chat-name-row');
+    if (!nameRow) return;
 
-    if (isUnread) {
+    let badge = nameRow.querySelector('.room-unread-badge');
+
+    if (count > 0) {
         if (!badge) {
-            badge = document.createElement('div');
-            badge.className = 'unread-dot';
-            badge.style = "width:10px; height:10px; background-color:#fa5252; border-radius:50%; position:absolute; right:20px; top:30px;";
-            infoDiv.appendChild(badge);
+            badge = document.createElement('span');
+            badge.className = 'room-unread-badge';
+            nameRow.appendChild(badge);
         }
-    } else if (badge) {
-        badge.remove();
+        badge.textContent = count > 99 ? '99+' : count;
+    } else {
+        if (badge) badge.remove();
     }
+
+    roomElement.setAttribute('data-unread-count', String(count));
+    roomElement.setAttribute('data-unread', String(count > 0));
 }

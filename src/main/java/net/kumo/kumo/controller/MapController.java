@@ -25,6 +25,7 @@ import net.kumo.kumo.domain.dto.JobSummaryDTO;
 import net.kumo.kumo.domain.dto.ReportDTO;
 import net.kumo.kumo.domain.entity.Enum;
 import net.kumo.kumo.domain.entity.UserEntity;
+import net.kumo.kumo.repository.ApplicationRepository;
 import net.kumo.kumo.repository.UserRepository;
 import net.kumo.kumo.service.MapService;
 import net.kumo.kumo.service.ScrapService;
@@ -44,6 +45,7 @@ public class MapController {
     private final MapService mapService;
     private final ScrapService scrapService;
     private final UserRepository userRepo;
+    private final ApplicationRepository applicationRepo;
 
     /**
      * 메인 지도 페이지를 렌더링합니다.
@@ -97,6 +99,7 @@ public class MapController {
         boolean isOwner = false;
         boolean isSeeker = false;
         boolean isScraped = false;
+        boolean isApplied = false;
         UserEntity user;
 
         if (principal != null) {
@@ -110,10 +113,14 @@ public class MapController {
                     isOwner = user.getUserId().equals(job.getUserId());
                 }
                 isSeeker = (user.getRole() == Enum.UserRole.SEEKER);
+                if (isSeeker) {
+                    isApplied = applicationRepo.existsByTargetSourceAndTargetPostIdAndSeeker(source, id, user);
+                }
             }
         }
 
         model.addAttribute("isScraped", isScraped);
+        model.addAttribute("isApplied", isApplied);
         model.addAttribute("job", job);
         model.addAttribute("googleMapsKey", googleMapKey);
         model.addAttribute("isOwner", isOwner);

@@ -21,6 +21,7 @@ import java.util.Collections;
 @ToString
 public class AuthenticatedUser implements UserDetails {
 
+    private Long userId;
     private String email;
     private String password;
     private String nameKanjiSei;

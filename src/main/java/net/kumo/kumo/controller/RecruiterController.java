@@ -27,6 +27,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import net.kumo.kumo.domain.dto.JobApplicantGroupDTO;
 import net.kumo.kumo.domain.dto.JobManageListDTO;
 import net.kumo.kumo.domain.dto.JobPostingRequestDTO;
@@ -60,6 +61,9 @@ public class RecruiterController {
 
     @Autowired
     private MessageSource messageSource;
+
+    @Value("${file.upload.dir}")
+    private String uploadDir;
 
     /**
      * 구인자 대시보드 메인 화면을 렌더링하며, 미확인 지원자 수 및 통계 데이터를 조회하여 전달합니다.
@@ -272,14 +276,14 @@ public class RecruiterController {
                 return ResponseEntity.badRequest().body("파일이 존재하지 않습니다.");
             }
 
-            String uploadDir = System.getProperty("user.home") + "/kumo_uploads/profiles/";
-            File dir = new File(uploadDir);
+            String profileUploadDir = uploadDir + "profiles/";
+            File dir = new File(profileUploadDir);
             if (!dir.exists()) {
                 dir.mkdirs();
             }
 
             String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-            File dest = new File(uploadDir + fileName);
+            File dest = new File(profileUploadDir + fileName);
             file.transferTo(dest);
 
             String userEmail = principal.getName();

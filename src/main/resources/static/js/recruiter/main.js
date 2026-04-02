@@ -72,13 +72,14 @@ function initApplicantChart() {
 
     const labels = typeof chartLabels !== 'undefined' ? chartLabels : [];
     const data = typeof chartData !== 'undefined' ? chartData : [];
+    const i18n = typeof chartI18n !== 'undefined' ? chartI18n : { datasetLabel: '지원자 수', tooltipSuffix: '명' };
 
     new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
             datasets: [{
-                label: '지원자 수',
+                label: i18n.datasetLabel,
                 data: data,
                 borderColor: '#7db4e6',
                 backgroundColor: 'rgba(125, 180, 230, 0.1)',
@@ -95,6 +96,16 @@ function initApplicantChart() {
             plugins: {
                 legend: {
                     display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        title: function (items) {
+                            return items[0].label;
+                        },
+                        label: function (item) {
+                            return i18n.datasetLabel + ' : ' + item.parsed.y + i18n.tooltipSuffix;
+                        }
+                    }
                 }
             },
             scales: {

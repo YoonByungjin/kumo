@@ -31,6 +31,7 @@ public class AuthenticatedUserDetailsService implements UserDetailsService {
         log.debug("조회된 회원 정보 : {}", userEntity);
 
         AuthenticatedUser user = AuthenticatedUser.builder()
+                .userId(userEntity.getUserId())
                 .email(userEntity.getEmail())
                 .password(userEntity.getPassword())
                 .nameKanjiSei(userEntity.getNameKanjiSei())

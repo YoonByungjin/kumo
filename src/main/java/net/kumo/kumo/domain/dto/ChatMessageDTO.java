@@ -39,4 +39,21 @@ public class ChatMessageDTO {
     /** 상대방의 메시지 수신(읽음) 여부 */
     private boolean isRead;
 
+    /** /sub/chat/user/ 채널 broadcast 시 수신자의 전체 미읽음 개수 (사이드바 뱃지용) */
+    private Integer unreadCount;
+
+    /** /sub/chat/user/ 채널 broadcast 시 해당 채팅방의 미읽음 개수 (리스트 뱃지용) */
+    private Integer roomUnreadCount;
+
+    // --- /sub/chat/user/ 채널 전용: 채팅 목록 신규 아이템 생성에 필요한 상대방 정보 ---
+
+    /** 수신자 입장에서의 상대방 닉네임 */
+    private String opponentNickname;
+
+    /** 수신자 입장에서의 상대방 프로필 이미지 URL */
+    private String opponentProfileImg;
+
+    /** 채팅방에 연결된 공고명 또는 스카우트 레이블 */
+    private String jobContext;
+
 }

@@ -55,6 +55,7 @@
     <div class="chat-list">
         <div th:each="room : ${chatRooms}" th:data-unread="${room.hasUnread}"
              th:data-room-id="${room.roomId}"
+             th:data-unread-count="${room.roomUnreadCount}"
              th:classappend="${room.pinned ? ' is-pinned' : ''}"
              class="chat-item"
              th:onclick="|enterRoom(${room.roomId})|">
@@ -67,7 +68,12 @@
                 <div class="chat-name-row">
                     <span class="chat-name" th:text="${room.opponentNickname}">상대방 이름</span>
                     <i class="fa-solid fa-thumbtack pin-icon"></i>
+                    <span class="room-unread-badge" th:if="${room.roomUnreadCount > 0}"
+                          th:text="${room.roomUnreadCount}"></span>
                 </div>
+                <p class="chat-job-context"
+                   th:if="${room.jobContext != null and !#strings.isEmpty(room.jobContext)}"
+                   th:text="${room.jobContext}"></p>
                 <p class="chat-preview" th:text="${room.lastMessage}">최신 메시지 내용</p>
             </div>
 

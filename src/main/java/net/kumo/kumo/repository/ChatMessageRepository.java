@@ -65,6 +65,19 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessageEntity, 
     int countUnreadMessagesForUser(@Param("userId") Long userId);
 
     /**
+     * 특정 채팅방에서 본인이 읽지 않은 상대방 메시지의 개수를 반환합니다.
+     *
+     * @param roomId 채팅방 식별자
+     * @param userId 본인(읽은이) 식별자
+     * @return 해당 방의 미확인 메시지 수
+     */
+    @Query("SELECT COUNT(m) FROM ChatMessageEntity m " +
+            "WHERE m.room.id = :roomId " +
+            "AND m.sender.userId != :userId " +
+            "AND m.isRead = false")
+    int countUnreadByRoomForUser(@Param("roomId") Long roomId, @Param("userId") Long userId);
+
+    /**
      * 특정 사용자가 발송한 모든 채팅 메시지 내역을 삭제합니다. (회원 탈퇴 시 사용)
      *
      * @param user 삭제할 작성자 엔티티

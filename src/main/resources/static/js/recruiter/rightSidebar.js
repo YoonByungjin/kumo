@@ -53,5 +53,36 @@ function updateSidebarBadge() {
  */
 document.addEventListener("DOMContentLoaded", function() {
     updateSidebarBadge();
-    setInterval(updateSidebarBadge, 10000);
+    connectSidebarSocket();
 });
+
+function connectSidebarSocket() {
+    const userId = window.SIDEBAR_USER_ID;
+    if (!userId) return;
+
+    var socket = new SockJS('/ws-stomp');
+    var client = Stomp.over(socket);
+    client.debug = null;
+
+    client.connect({}, function() {
+        client.subscribe('/sub/chat/user/' + userId, function(frame) {
+            const msg = JSON.parse(frame.body);
+            if (msg.unreadCount !== undefined && msg.unreadCount !== null) {
+                applyBadgeCount(msg.unreadCount);
+            }
+        });
+    }, function() {
+        setTimeout(connectSidebarSocket, 5000);
+    });
+}
+
+function applyBadgeCount(count) {
+    const badge = document.getElementById('side-unread-badge');
+    if (!badge) return;
+    if (count > 0) {
+        badge.textContent = count;
+        badge.style.display = 'flex';
+    } else {
+        badge.style.display = 'none';
+    }
+}

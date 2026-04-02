@@ -173,8 +173,13 @@
         </div>
 
         <div class="seeker-center">
-            <button class="btn-action btn-apply" th:data-id="${job.id}" th:data-source="${job.source}"
-                    th:text="${lang == 'ja' ? '応募する' : '구인 신청'}" onclick="applyForJob(this)">
+            <button class="btn-action btn-apply"
+                    th:data-id="${job.id}"
+                    th:data-source="${job.source}"
+                    th:onclick="${isApplied} ? '' : 'applyForJob(this)'"
+                    th:disabled="${isApplied}"
+                    th:text="${isApplied} ? (${lang == 'ja'} ? '応募完了' : '신청 완료') : (${lang == 'ja'} ? '応募する' : '구인 신청')"
+                    th:style="${isApplied} ? 'background-color:#6c757d; border-color:#6c757d; cursor:not-allowed;' : ''">
                 구인 신청
             </button>
         </div>
