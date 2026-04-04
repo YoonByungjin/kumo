@@ -185,6 +185,40 @@
 
 <br>
 
+## 🚀 リリース (Deployment)
+
+### インフラ構成
+
+| 項目 | 内容 |
+|------|------|
+| サーバー | AWS EC2 (Ubuntu) |
+| データベース | AWS RDS (MySQL 8.0) |
+| CI/CD | GitHub Actions（mainブランチへのpushで自動リリース） |
+| ビルド | Gradle |
+
+### リリースフロー
+```
+main ブランチへ push
+       ↓
+GitHub Actions トリガー
+       ↓
+Gradle ビルド（.jar生成）
+       ↓
+EC2 へ SSH 接続 → .jar 転送
+       ↓
+既存プロセス停止 → 新プロセス起動
+```
+
+### 本番環境での対応
+
+プロジェクト完了後、ローカルでは発生しなかった本番環境固有の問題（パス・環境変数・外部API接続等）を個人で調査・修正し、安定稼働を確認。
+
+
+
+
+
+<br>
+
 ## 📊 ERD
 
 ### コアテーブル構造
@@ -473,6 +507,40 @@ src/main/resources/
 | **Service Layer** | 12개의 서비스 클래스로 구성된 핵심 비즈니스 로직 계층. 구직자/구인자 관리, 공고 검색, 채팅(STOMP/WebSocket), 알림(이벤트 트리거 기반 REST API), 이메일 인증 등을 처리 |
 | **JPA Repository** | Spring Data JPA를 통한 데이터 접근 계층. MySQL과의 상호작용을 추상화 |
 | **Python Data Pipeline** | Selenium 크롤링 → pandas 정제 → Gemini AI 파싱/번역 → Google Maps 지오코딩 → 지역 필터링 → DB 적재까지 7단계 자동화 |
+
+<br>
+
+## 🚀 배포 (Deployment)
+
+### 인프라 구성
+
+| 항목 | 내용 |
+|------|------|
+| 서버 | AWS EC2 (Ubuntu) |
+| 데이터베이스 | AWS RDS (MySQL 8.0) |
+| CI/CD | GitHub Actions (main 브랜치 push 시 자동 배포) |
+| 빌드 | Gradle |
+
+### 배포 플로우
+
+```
+main 브랜치 push
+       ↓
+GitHub Actions 트리거
+       ↓
+Gradle 빌드 (.jar 생성)
+       ↓
+EC2에 SSH 접속 → .jar 전송
+       ↓
+기존 프로세스 종료 → 신규 프로세스 실행
+```
+
+### 운영 환경 대응
+
+프로젝트 종료 후, 로컬에서는 발생하지 않았던 운영 환경 고유 문제(경로·환경변수·외부 API 연결 등)를 개인적으로 조사·수정하여 안정적인 운영을 확인.
+
+
+
 
 <br>
 
