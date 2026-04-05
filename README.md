@@ -98,7 +98,7 @@
 
 ## 👤 担当機能（ユン・ビョンジン）
 
-> 5人チームで**リーダー**を務め、企画から設計・実装・テストまで以下の機能を担当しました。
+> 5人チームで**リーダー**を務め、企画から設計・実装・テスト・**リリース**まで以下の機能を担当しました。
 
 ### 🔐 認証・セキュリティ
 
@@ -161,6 +161,27 @@
 | 6. 翻訳 | Gemini APIで韓国語データを日本語に一括翻訳 |
 | 7. DB保存 | MySQL `osaka_geocoded` / `tokyo_geocoded`テーブルにINSERT。Adminアカウント自動マッピング |
 
+### 🚀 デプロイ · インフラ
+
+| 項目 | 実装詳細 |
+|------|-----------|
+| インフラ構成 | AWS EC2(Ubuntu) + RDS(MySQL 8.0) 環境構築 |
+| CI/CD | GitHub ActionsでmainブランチへのPush時にGradleビルド → EC2 SSH接続 → `.jar`転送 → プロセス再起動まで自動化 |
+| トラブルシューティング | 運営環境固有の問題（パス設定・環境変数・外部API接続等）を原因分析・修正し、安定稼働を確認 |
+
+### デプロイフロー
+```
+mainブランチへpush
+       ↓
+GitHub Actionsトリガー
+       ↓
+Gradleビルド（.jar生成）
+       ↓
+EC2へSSH接続 → .jar転送
+       ↓
+既存プロセス停止 → 新プロセス起動
+```
+
 ### 📋 PM役割
 
 | 項目 | 内容 |
@@ -183,40 +204,6 @@
 | **Service Layer** | 12のサービスクラスで構成されるビジネスロジック層。求職者/求人者管理、求人検索、チャット（STOMP/WebSocket）、通知（イベントトリガーベースのREST API）、メール認証等を処理 |
 | **JPA Repository** | Spring Data JPAによるデータアクセス階層。MySQLとの相互作用を抽象化 |
 | **Python Data Pipeline** | Seleniumクローリング → pandas整形 → Gemini AIパーシング/翻訳 → Google Mapsジオコーディング → 地域フィルタリング → DB投入まで7段階自動化 |
-
-<br>
-
-## 🚀 リリース (Deployment)
-
-### インフラ構成
-
-| 項目 | 内容 |
-|------|------|
-| サーバー | AWS EC2 (Ubuntu) |
-| データベース | AWS RDS (MySQL 8.0) |
-| CI/CD | GitHub Actions（mainブランチへのpushで自動リリース） |
-| ビルド | Gradle |
-
-### リリースフロー
-```
-main ブランチへ push
-       ↓
-GitHub Actions トリガー
-       ↓
-Gradle ビルド（.jar生成）
-       ↓
-EC2 へ SSH 接続 → .jar 転送
-       ↓
-既存プロセス停止 → 新プロセス起動
-```
-
-### 本番環境での対応
-
-プロジェクト完了後、ローカルでは発生しなかった本番環境固有の問題（パス・環境変数・外部API接続等）を個人で調査・修正し、安定稼働を確認。
-
-
-
-
 
 <br>
 
@@ -424,7 +411,7 @@ src/main/resources/
 
 ## 👤 담당 기능 (ユン・ビョンジン)
 
-> 5인 팀에서 **리더**를 맡아, 기획부터 설계·구현·테스트까지 아래 기능을 담당했습니다.
+> 5인 팀에서 **리더**를 맡아, 기획부터 설계·구현·테스트·**배포**까지 아래 기능을 담당했습니다.
 
 ### 🔐 인증 · 보안
 
@@ -487,6 +474,28 @@ src/main/resources/
 | 6. 번역 | Gemini API로 한국어 데이터를 일본어로 일괄 번역 |
 | 7. DB 저장 | MySQL `osaka_geocoded` / `tokyo_geocoded` 테이블에 INSERT. Admin 계정 자동 매핑 |
 
+### 🚀 배포 · 인프라
+
+| 항목 | 구현 상세 |
+|------|-----------|
+| 인프라 구성 | AWS EC2(Ubuntu) + RDS(MySQL 8.0) 환경 구축 |
+| CI/CD | GitHub Actions로 main 브랜치 push 시 Gradle 빌드 → EC2 SSH 접속 → `.jar` 전송 → 프로세스 재시작까지 자동화 |
+| 트러블슈팅 | 운영 환경 전용 문제(경로 설정, 환경변수, 외부 API 연결 등) 원인 분석 및 수정하여 안정적 운영 확인 |
+
+### 배포 플로우
+
+```
+main 브랜치 push
+       ↓
+GitHub Actions 트리거
+       ↓
+Gradle 빌드 (.jar 생성)
+       ↓
+EC2에 SSH 접속 → .jar 전송
+       ↓
+기존 프로세스 종료 → 신규 프로세스 실행
+```
+
 ### 📋 PM 역할
 
 | 항목 | 내용                                                                                |
@@ -509,40 +518,6 @@ src/main/resources/
 | **Service Layer** | 12개의 서비스 클래스로 구성된 핵심 비즈니스 로직 계층. 구직자/구인자 관리, 공고 검색, 채팅(STOMP/WebSocket), 알림(이벤트 트리거 기반 REST API), 이메일 인증 등을 처리 |
 | **JPA Repository** | Spring Data JPA를 통한 데이터 접근 계층. MySQL과의 상호작용을 추상화 |
 | **Python Data Pipeline** | Selenium 크롤링 → pandas 정제 → Gemini AI 파싱/번역 → Google Maps 지오코딩 → 지역 필터링 → DB 적재까지 7단계 자동화 |
-
-<br>
-
-## 🚀 배포 (Deployment)
-
-### 인프라 구성
-
-| 항목 | 내용 |
-|------|------|
-| 서버 | AWS EC2 (Ubuntu) |
-| 데이터베이스 | AWS RDS (MySQL 8.0) |
-| CI/CD | GitHub Actions (main 브랜치 push 시 자동 배포) |
-| 빌드 | Gradle |
-
-### 배포 플로우
-
-```
-main 브랜치 push
-       ↓
-GitHub Actions 트리거
-       ↓
-Gradle 빌드 (.jar 생성)
-       ↓
-EC2에 SSH 접속 → .jar 전송
-       ↓
-기존 프로세스 종료 → 신규 프로세스 실행
-```
-
-### 운영 환경 대응
-
-프로젝트 종료 후, 로컬에서는 발생하지 않았던 운영 환경 고유 문제(경로·환경변수·외부 API 연결 등)를 개인적으로 조사·수정하여 안정적인 운영을 확인.
-
-
-
 
 <br>
 
